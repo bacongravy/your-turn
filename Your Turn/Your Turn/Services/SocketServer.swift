@@ -25,7 +25,7 @@ class SocketServer: ObservableObject {
 
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("Claude Notify")
+        let appDir = appSupport.appendingPathComponent("Your Turn")
         socketPath = appDir.appendingPathComponent("claude-notify.sock")
 
         // Auto-start on initialization
