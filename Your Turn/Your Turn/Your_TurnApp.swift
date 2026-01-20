@@ -25,22 +25,50 @@ struct SettingsCoordinator: View {
     }
 }
 
+/// Wrapper view to handle socket server lifecycle and error alerts
+struct MenuBarContentView: View {
+    @ObservedObject var socketServer: SocketServer
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        SettingsCoordinator()
+
+        Button("Settings...") {
+            NotificationCenter.default.post(name: .openSettings, object: nil)
+        }
+        .keyboardShortcut(",", modifiers: .command)
+
+        Divider()
+
+        Button("Quit") {
+            socketServer.stop()
+            NSApplication.shared.terminate(nil)
+        }
+        .onAppear {
+            socketServer.start()
+        }
+        .onChange(of: socketServer.error != nil) { _, hasError in
+            if hasError, let error = socketServer.error {
+                errorMessage = error.localizedDescription
+                showErrorAlert = true
+            }
+        }
+        .alert("Socket Server Error", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Failed to start socket server: \(errorMessage)")
+        }
+    }
+}
+
 @main
 struct Your_TurnApp: App {
+    @StateObject private var socketServer = SocketServer()
+
     var body: some Scene {
         MenuBarExtra("Your Turn", systemImage: "bubble.left") {
-            SettingsCoordinator()
-
-            Button("Settings...") {
-                NotificationCenter.default.post(name: .openSettings, object: nil)
-            }
-            .keyboardShortcut(",", modifiers: .command)
-
-            Divider()
-
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
+            MenuBarContentView(socketServer: socketServer)
         }
 
         Window("Your Turn Settings", id: "settings") {
