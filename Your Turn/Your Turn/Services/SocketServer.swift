@@ -40,8 +40,9 @@ class SocketServer: ObservableObject {
             try? FileManager.default.removeItem(at: socketPath)
 
             // Configure NWListener for Unix socket
-            let params = NWParameters()
-            params.defaultProtocolStack.transportProtocol = NWProtocolTCP.Options()
+            // Use .init() without TCP - Unix sockets are local IPC, not network connections
+            // Setting TCP causes NECP policy errors since Unix sockets don't go through network stack
+            let params = NWParameters.init()
             params.requiredLocalEndpoint = NWEndpoint.unix(path: socketPath.path)
             params.allowLocalEndpointReuse = true
 
