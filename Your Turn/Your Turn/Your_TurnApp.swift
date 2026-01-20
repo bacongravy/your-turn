@@ -31,9 +31,15 @@ struct MenuBarContentView: View {
     @ObservedObject var socketServer: SocketServer
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var notificationService: NotificationService?
 
     var body: some View {
         SettingsCoordinator()
+            .task {
+                if notificationService == nil {
+                    notificationService = NotificationService(socketServer: socketServer)
+                }
+            }
 
         Button("Settings...") {
             NotificationCenter.default.post(name: .openSettings, object: nil)
