@@ -7,16 +7,17 @@
 
 import Combine
 import Foundation
-import Network
 import os.log
 
 /// Unix socket server that listens for JSON-RPC messages from Claude Code hooks.
-/// Uses Network.framework NWListener for modern async socket handling.
+/// Uses POSIX sockets directly since Network.framework NWListener doesn't support Unix domain sockets.
 @MainActor
 class SocketServer: ObservableObject {
-    private var listener: NWListener?
+    private var serverSocket: Int32 = -1
+    private var acceptSource: DispatchSourceRead?
     private let socketPath: URL
     private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "SocketServer")
+    private let socketQueue = DispatchQueue(label: "net.bacongravy.Your-Turn.socket", qos: .utility)
 
     @Published private(set) var lastEvent: HookEvent?
     @Published private(set) var isRunning = false
@@ -39,29 +40,72 @@ class SocketServer: ObservableObject {
             // Remove stale socket file (from crash recovery)
             try? FileManager.default.removeItem(at: socketPath)
 
-            // Configure NWListener for Unix socket
-            // Use .init() without TCP - Unix sockets are local IPC, not network connections
-            // Setting TCP causes NECP policy errors since Unix sockets don't go through network stack
-            let params = NWParameters.init()
-            params.requiredLocalEndpoint = NWEndpoint.unix(path: socketPath.path)
-            params.allowLocalEndpointReuse = true
-
-            listener = try NWListener(using: params)
-
-            listener?.stateUpdateHandler = { [weak self] state in
-                Task { @MainActor in
-                    self?.handleStateChange(state)
-                }
-            }
-
-            listener?.newConnectionHandler = { [weak self] connection in
-                Task { @MainActor in
-                    self?.handleConnection(connection)
-                }
-            }
-
-            listener?.start(queue: .main)
             logger.info("Socket server starting at \(self.socketPath.path)")
+
+            // Create Unix domain socket
+            serverSocket = socket(AF_UNIX, SOCK_STREAM, 0)
+            guard serverSocket >= 0 else {
+                throw SocketError.createFailed(errno: errno)
+            }
+
+            // Set socket options
+            var reuseAddr: Int32 = 1
+            setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, socklen_t(MemoryLayout<Int32>.size))
+
+            // Bind to path
+            var addr = sockaddr_un()
+            addr.sun_family = sa_family_t(AF_UNIX)
+            let pathBytes = socketPath.path.utf8CString
+            withUnsafeMutablePointer(to: &addr.sun_path) { ptr in
+                let bound = ptr.withMemoryRebound(to: CChar.self, capacity: 104) { sunPath in
+                    pathBytes.withUnsafeBufferPointer { pathBuffer in
+                        let count = min(pathBuffer.count, 104)
+                        for i in 0..<count {
+                            sunPath[i] = pathBuffer[i]
+                        }
+                        return count
+                    }
+                }
+                _ = bound
+            }
+
+            let bindResult = withUnsafePointer(to: &addr) { ptr in
+                ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                    bind(serverSocket, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+                }
+            }
+            guard bindResult == 0 else {
+                close(serverSocket)
+                serverSocket = -1
+                throw SocketError.bindFailed(errno: errno)
+            }
+
+            // Listen with backlog of 5
+            guard listen(serverSocket, 5) == 0 else {
+                close(serverSocket)
+                serverSocket = -1
+                throw SocketError.listenFailed(errno: errno)
+            }
+
+            // Set non-blocking
+            let flags = fcntl(serverSocket, F_GETFL)
+            fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK)
+
+            // Create dispatch source for accepting connections
+            acceptSource = DispatchSource.makeReadSource(fileDescriptor: serverSocket, queue: socketQueue)
+            acceptSource?.setEventHandler { [weak self] in
+                self?.acceptConnection()
+            }
+            acceptSource?.setCancelHandler { [weak self] in
+                if let fd = self?.serverSocket, fd >= 0 {
+                    close(fd)
+                }
+            }
+            acceptSource?.resume()
+
+            isRunning = true
+            error = nil
+            logger.info("Socket server ready")
         } catch {
             logger.error("Failed to start socket server: \(error.localizedDescription)")
             self.error = error
@@ -69,8 +113,14 @@ class SocketServer: ObservableObject {
     }
 
     func stop() {
-        listener?.cancel()
-        listener = nil
+        acceptSource?.cancel()
+        acceptSource = nil
+
+        if serverSocket >= 0 {
+            close(serverSocket)
+            serverSocket = -1
+        }
+
         isRunning = false
 
         // Clean up socket file
@@ -78,35 +128,66 @@ class SocketServer: ObservableObject {
         logger.info("Socket server stopped")
     }
 
-    private func handleStateChange(_ state: NWListener.State) {
-        switch state {
-        case .ready:
-            isRunning = true
-            error = nil
-            logger.info("Socket server ready")
-        case .failed(let err):
-            isRunning = false
-            error = err
-            logger.error("Socket server failed: \(err.localizedDescription)")
-        case .cancelled:
-            isRunning = false
-            logger.info("Socket server cancelled")
-        case .waiting(let err):
-            logger.warning("Socket server waiting: \(err.localizedDescription)")
-        default:
-            break
+    private func acceptConnection() {
+        var clientAddr = sockaddr_un()
+        var addrLen = socklen_t(MemoryLayout<sockaddr_un>.size)
+
+        let clientSocket = withUnsafeMutablePointer(to: &clientAddr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                accept(serverSocket, sockaddrPtr, &addrLen)
+            }
+        }
+
+        guard clientSocket >= 0 else {
+            if errno != EWOULDBLOCK && errno != EAGAIN {
+                logger.error("Accept failed: \(String(cString: strerror(errno)))")
+            }
+            return
+        }
+
+        logger.debug("New connection accepted")
+
+        // Handle connection in background
+        socketQueue.async { [weak self] in
+            self?.handleConnection(clientSocket)
         }
     }
 
-    private func handleConnection(_ connection: NWConnection) {
-        logger.debug("New connection received")
+    private func handleConnection(_ clientSocket: Int32) {
+        defer { close(clientSocket) }
 
-        // Use a class to hold accumulated data since closures can't capture inout
-        let connectionHandler = ConnectionHandler(server: self, connection: connection, logger: logger)
-        connectionHandler.start()
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+
+        // Read until connection closes
+        while true {
+            let bytesRead = read(clientSocket, &buffer, buffer.count)
+            if bytesRead > 0 {
+                data.append(contentsOf: buffer[0..<bytesRead])
+            } else if bytesRead == 0 {
+                // Connection closed
+                break
+            } else {
+                if errno == EAGAIN || errno == EWOULDBLOCK {
+                    // Would block, try again
+                    usleep(1000) // 1ms
+                    continue
+                }
+                logger.error("Read error: \(String(cString: strerror(errno)))")
+                break
+            }
+        }
+
+        logger.debug("Connection complete, processing \(data.count) bytes")
+
+        // Process on main actor
+        let finalData = data
+        Task { @MainActor [weak self] in
+            self?.processMessage(finalData)
+        }
     }
 
-    fileprivate func processMessage(_ data: Data) {
+    private func processMessage(_ data: Data) {
         guard !data.isEmpty else {
             logger.debug("Empty message received, ignoring")
             return
@@ -127,63 +208,20 @@ class SocketServer: ObservableObject {
     }
 }
 
-/// Helper class to manage a single connection's lifecycle and data accumulation.
-/// This is nonisolated to work with Network.framework callbacks.
-private class ConnectionHandler: @unchecked Sendable {
-    private weak var server: SocketServer?
-    private let connection: NWConnection
-    private let logger: Logger
-    private var accumulatedData = Data()
+/// Socket-specific errors
+enum SocketError: LocalizedError {
+    case createFailed(errno: Int32)
+    case bindFailed(errno: Int32)
+    case listenFailed(errno: Int32)
 
-    init(server: SocketServer, connection: NWConnection, logger: Logger) {
-        self.server = server
-        self.connection = connection
-        self.logger = logger
-    }
-
-    func start() {
-        connection.stateUpdateHandler = { [weak self] state in
-            self?.handleState(state)
-        }
-        connection.start(queue: .main)
-    }
-
-    private func handleState(_ state: NWConnection.State) {
-        switch state {
-        case .ready:
-            logger.debug("Connection ready, starting receive")
-            receiveData()
-        case .cancelled, .failed:
-            logger.debug("Connection ended")
-        default:
-            break
-        }
-    }
-
-    private func receiveData() {
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
-            guard let self = self else { return }
-
-            if let data = data, !data.isEmpty {
-                self.accumulatedData.append(data)
-                self.logger.debug("Received \(data.count) bytes, total: \(self.accumulatedData.count)")
-            }
-
-            if isComplete {
-                // Connection closed - process accumulated data
-                self.logger.debug("Connection complete, processing \(self.accumulatedData.count) bytes")
-                let finalData = self.accumulatedData
-                Task { @MainActor in
-                    self.server?.processMessage(finalData)
-                }
-                self.connection.cancel()
-            } else if let error = error {
-                self.logger.error("Receive error: \(error.localizedDescription)")
-                self.connection.cancel()
-            } else {
-                // Continue receiving (data may arrive in chunks)
-                self.receiveData()
-            }
+    var errorDescription: String? {
+        switch self {
+        case .createFailed(let e):
+            return "Failed to create socket: \(String(cString: strerror(e)))"
+        case .bindFailed(let e):
+            return "Failed to bind socket: \(String(cString: strerror(e)))"
+        case .listenFailed(let e):
+            return "Failed to listen on socket: \(String(cString: strerror(e)))"
         }
     }
 }
