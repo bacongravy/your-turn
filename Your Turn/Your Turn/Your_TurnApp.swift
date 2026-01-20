@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 extension Notification.Name {
     static let openSettings = Notification.Name("openSettings")
@@ -61,6 +62,7 @@ struct MenuBarContentView: View {
 
 @main
 struct Your_TurnApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var socketServer = SocketServer()
 
     var body: some Scene {
