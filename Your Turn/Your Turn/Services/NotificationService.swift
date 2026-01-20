@@ -106,11 +106,12 @@ class NotificationService: ObservableObject {
             content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
         }
 
-        // Store session info for iTerm focusing (Phase 5)
+        // Store session info for iTerm focusing
         content.userInfo = [
             "sessionId": event.sessionId,
             "cwd": event.cwd,
-            "termSessionId": event.termSessionId ?? ""
+            "termSessionId": event.termSessionId ?? "",
+            "termProgram": event.termProgram ?? ""
         ]
 
         // Use session-based identifier for notification replacement
