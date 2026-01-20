@@ -7,14 +7,34 @@
 
 import SwiftUI
 
+extension Notification.Name {
+    static let openSettings = Notification.Name("openSettings")
+}
+
+struct SettingsCoordinator: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "settings")
+            }
+    }
+}
+
 @main
 struct Your_TurnApp: App {
     var body: some Scene {
         MenuBarExtra("Your Turn", systemImage: "bubble.left") {
+            SettingsCoordinator()
+
             Button("Settings...") {
-                // Phase 2 will implement
+                NotificationCenter.default.post(name: .openSettings, object: nil)
             }
-            .disabled(true)
+            .keyboardShortcut(",", modifiers: .command)
 
             Divider()
 
@@ -22,5 +42,14 @@ struct Your_TurnApp: App {
                 NSApplication.shared.terminate(nil)
             }
         }
+
+        Window("Your Turn Settings", id: "settings") {
+            SettingsView()
+                .onDisappear {
+                    NSApp.setActivationPolicy(.accessory)
+                }
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
