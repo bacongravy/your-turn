@@ -45,9 +45,6 @@ struct MenuBarContentView: View {
             socketServer.stop()
             NSApplication.shared.terminate(nil)
         }
-        .onAppear {
-            socketServer.start()
-        }
         .onChange(of: socketServer.error != nil) { _, hasError in
             if hasError, let error = socketServer.error {
                 errorMessage = error.localizedDescription

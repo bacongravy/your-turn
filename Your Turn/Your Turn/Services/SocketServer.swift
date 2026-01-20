@@ -27,6 +27,10 @@ class SocketServer: ObservableObject {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let appDir = appSupport.appendingPathComponent("Claude Notify")
         socketPath = appDir.appendingPathComponent("claude-notify.sock")
+
+        // Auto-start on initialization
+        // Since SocketServer is @MainActor and @StateObject creation happens on main actor, this is safe
+        start()
     }
 
     func start() {
