@@ -10,8 +10,17 @@ import SwiftUI
 @main
 struct Your_TurnApp: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra("Your Turn", systemImage: "bubble.left") {
+            Button("Settings...") {
+                // Phase 2 will implement
+            }
+            .disabled(true)
+
+            Divider()
+
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
         }
     }
 }
