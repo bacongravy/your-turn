@@ -18,13 +18,14 @@ echo "  Stopping app if running..."
 killall "Your Turn" 2>/dev/null || true
 
 # Reset app preferences (UserDefaults)
+# Use plist path directly because defaults may look in wrong location
+# (Containers vs regular Preferences) after sandbox changes
 echo "  Resetting preferences..."
-defaults delete "$BUNDLE_ID" 2>/dev/null || true
-
-# Also delete the plist file directly as fallback
 if [ -f "$PLIST_FILE" ]; then
-  echo "  Removing preferences file..."
-  rm "$PLIST_FILE"
+  defaults delete "$PLIST_FILE" 2>/dev/null || rm "$PLIST_FILE"
+  echo "    Removed $PLIST_FILE"
+else
+  echo "    No preferences file found"
 fi
 
 # Force preferences daemon to reload
