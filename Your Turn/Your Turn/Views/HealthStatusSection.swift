@@ -37,7 +37,9 @@ struct HealthStatusSection: View {
             HealthCheckRow(
                 title: "Notifications Permitted",
                 state: healthService.status.notifications,
-                onAction: repairNotifications
+                onAction: repairNotifications,
+                okActionLabel: "Configure",
+                onOkAction: repairNotifications
             )
 
             HealthCheckRow(
