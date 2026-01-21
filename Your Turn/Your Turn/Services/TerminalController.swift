@@ -31,15 +31,9 @@ final class TerminalRegistry {
 
     private init() {
         // Register known terminal controllers
-        // Note: ITermController registered after it conforms to TerminalActivating
+        register("iterm", controller: ITermController.shared)
         register("apple_terminal", controller: TerminalAppController.shared)
         register("warpterminal", controller: WarpController.shared)
-    }
-
-    /// Register a terminal controller for a TERM_PROGRAM value.
-    /// Used by controllers to self-register after conforming to TerminalActivating.
-    func registerController(_ termProgram: String, controller: TerminalActivating) {
-        controllers[termProgram] = controller
     }
 
     /// Register a controller for a TERM_PROGRAM value.

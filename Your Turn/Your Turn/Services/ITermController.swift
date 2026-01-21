@@ -23,7 +23,7 @@ final class ITermController {
     /// Falls back to activating iTerm2 without session focus if session not found.
     /// - Parameter termSessionId: The TERM_SESSION_ID value (format: wXtYpZ:UUID)
     func focusSession(termSessionId: String) {
-        guard isiTermRunning() else {
+        guard isRunning() else {
             logger.debug("iTerm2 not running, skipping focus")
             return
         }
@@ -61,7 +61,7 @@ final class ITermController {
     /// Activate iTerm2 without focusing a specific session.
     /// Used when termSessionId is missing but termProgram indicates iTerm.
     func activateiTerm() {
-        guard isiTermRunning() else {
+        guard isRunning() else {
             logger.debug("iTerm2 not running, skipping activation")
             return
         }
@@ -84,7 +84,8 @@ final class ITermController {
         return termSessionId
     }
 
-    private func isiTermRunning() -> Bool {
+    /// Check if iTerm2 is currently running.
+    func isRunning() -> Bool {
         NSWorkspace.shared.runningApplications.contains {
             $0.bundleIdentifier == iTerm2BundleId
         }
@@ -101,6 +102,20 @@ final class ITermController {
 
         if let error = errorInfo {
             logger.debug("AppleScript error: \(error)")
+        }
+    }
+}
+
+// MARK: - TerminalActivating
+
+extension ITermController: TerminalActivating {
+    /// Activate iTerm2, optionally focusing a specific session.
+    /// - Parameter sessionId: The TERM_SESSION_ID value (format: wXtYpZ:UUID), or nil.
+    func activate(sessionId: String?) {
+        if let sessionId = sessionId, !sessionId.isEmpty {
+            focusSession(termSessionId: sessionId)
+        } else {
+            activateiTerm()
         }
     }
 }

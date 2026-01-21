@@ -41,31 +41,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     /// Called when user interacts with a notification (click or action).
-    /// Dispatches to ITermController to focus the terminal session.
+    /// Routes to appropriate terminal controller via TerminalRegistry.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
+        let termProgram = userInfo["termProgram"] as? String
+        let termSessionId = userInfo["termSessionId"] as? String
 
-        let termProgram = userInfo["termProgram"] as? String ?? ""
-        let termSessionId = userInfo["termSessionId"] as? String ?? ""
-
-        // Only attempt iTerm focus if notification came from iTerm
-        if termProgram.lowercased().contains("iterm") {
-            if !termSessionId.isEmpty {
-                Task { @MainActor in
-                    ITermController.shared.focusSession(termSessionId: termSessionId)
-                }
-            } else {
-                // Fallback: bring iTerm to front without specific session
-                Task { @MainActor in
-                    ITermController.shared.activateiTerm()
-                }
+        // Route to appropriate controller via registry
+        if let controller = TerminalRegistry.shared.controller(for: termProgram) {
+            Task { @MainActor in
+                controller.activate(sessionId: termSessionId)
             }
         }
-        // Silent no-op for non-iTerm terminals
+        // Silent no-op for unknown terminals (no controller found)
 
         completionHandler()
     }
