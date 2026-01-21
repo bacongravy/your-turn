@@ -96,7 +96,7 @@ class SocketServer: ObservableObject {
 
             // Set non-blocking
             let flags = fcntl(serverSocket, F_GETFL)
-            fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK)
+            _ = fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK)
 
             // Create dispatch source for accepting connections
             acceptSource = DispatchSource.makeReadSource(fileDescriptor: serverSocket, queue: socketQueue)
@@ -160,7 +160,7 @@ class SocketServer: ObservableObject {
         }
     }
 
-    private func handleConnection(_ clientSocket: Int32) {
+    private nonisolated func handleConnection(_ clientSocket: Int32) {
         defer { close(clientSocket) }
 
         var data = Data()
