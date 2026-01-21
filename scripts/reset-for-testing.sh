@@ -9,12 +9,26 @@ set -e
 BUNDLE_ID="net.bacongravy.Your-Turn"
 SETTINGS_FILE="$HOME/.claude/settings.json"
 HOOK_SCRIPT="$HOME/.claude/hooks/your-turn-notify.sh"
+PLIST_FILE="$HOME/Library/Preferences/${BUNDLE_ID}.plist"
 
 echo "Resetting Your Turn for fresh testing..."
+
+# Kill the app if running
+echo "  Stopping app if running..."
+killall "Your Turn" 2>/dev/null || true
 
 # Reset app preferences (UserDefaults)
 echo "  Resetting preferences..."
 defaults delete "$BUNDLE_ID" 2>/dev/null || true
+
+# Also delete the plist file directly as fallback
+if [ -f "$PLIST_FILE" ]; then
+  echo "  Removing preferences file..."
+  rm "$PLIST_FILE"
+fi
+
+# Force preferences daemon to reload
+killall cfprefsd 2>/dev/null || true
 
 # Reset notification permission
 echo "  Resetting notification permission..."
