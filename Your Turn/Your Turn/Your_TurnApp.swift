@@ -109,6 +109,14 @@ struct Your_TurnApp: App {
                 NSApp.setActivationPolicy(.accessory)
             })
             .onAppear {
+                // If setup is already complete (window restored by macOS), close immediately
+                if setupComplete {
+                    DispatchQueue.main.async {
+                        NSApp.keyWindow?.close()
+                        NSApp.setActivationPolicy(.accessory)
+                    }
+                    return
+                }
                 // Ensure we're in regular mode while setup is shown
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
