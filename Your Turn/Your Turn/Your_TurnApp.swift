@@ -82,10 +82,16 @@ struct Your_TurnApp: App {
     var body: some Scene {
         // Menu bar only - windows are created programmatically by AppDelegate
         MenuBarExtra("Your Turn", systemImage: "bubble.left") {
-            if setupComplete {
-                MenuBarContentView(socketServer: socketServer)
-            } else {
-                SetupPendingMenu()
+            Group {
+                if setupComplete {
+                    MenuBarContentView(socketServer: socketServer)
+                } else {
+                    SetupPendingMenu()
+                }
+            }
+            .onAppear {
+                // Make socket server accessible for settings window health checks
+                SocketServer.shared = socketServer
             }
         }
     }

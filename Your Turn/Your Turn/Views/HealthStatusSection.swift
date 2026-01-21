@@ -44,7 +44,8 @@ struct HealthStatusSection: View {
             Text("Integration Status")
         }
         .onAppear {
-            healthService.socketServer = socketServer
+            // Use provided socketServer or fall back to shared instance
+            healthService.socketServer = socketServer ?? SocketServer.shared
             Task {
                 await healthService.checkAll()
             }

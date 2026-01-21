@@ -12,7 +12,11 @@ struct GeneralSection: View {
     @State private var launchAtLogin = false
     @AppStorage("setupComplete") private var setupComplete = true
 
+    var socketServer: SocketServer?
+
     var body: some View {
+        HealthStatusSection(socketServer: socketServer)
+
         Section {
             ToggleRow(
                 title: "Launch at Login",
@@ -41,10 +45,15 @@ struct GeneralSection: View {
             launchAtLogin = SMAppService.mainApp.status == .enabled
         }
         .onChange(of: launchAtLogin) { _, newValue in
-            if newValue {
-                try? SMAppService.mainApp.register()
-            } else {
-                try? SMAppService.mainApp.unregister()
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                // Silent failure - revert toggle per CONTEXT.md
+                launchAtLogin = SMAppService.mainApp.status == .enabled
             }
         }
     }

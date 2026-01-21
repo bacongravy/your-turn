@@ -13,6 +13,9 @@ import os.log
 /// Uses POSIX sockets directly since Network.framework NWListener doesn't support Unix domain sockets.
 @MainActor
 class SocketServer: ObservableObject {
+    /// Shared instance for access from non-SwiftUI code (e.g., AppDelegate-created windows)
+    static var shared: SocketServer?
+
     private var serverSocket: Int32 = -1
     private var acceptSource: DispatchSourceRead?
     private let socketPath: URL
