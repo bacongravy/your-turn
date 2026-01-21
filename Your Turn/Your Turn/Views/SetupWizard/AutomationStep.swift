@@ -40,31 +40,34 @@ struct AutomationStep: View {
 
             Spacer()
 
-            // Action area
-            if hasRequested {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Permission requested")
-                        .foregroundStyle(.secondary)
-                }
-                .font(.body)
-            } else {
-                Button {
-                    requestAutomation()
-                } label: {
-                    if isRequesting {
-                        ProgressView()
-                            .controlSize(.small)
-                            .padding(.horizontal, 8)
-                    } else {
-                        Text("Enable Automation")
+            // Action area - fixed height to prevent layout shift
+            VStack {
+                if hasRequested {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Permission requested")
+                            .foregroundStyle(.secondary)
                     }
+                    .font(.body)
+                } else {
+                    Button {
+                        requestAutomation()
+                    } label: {
+                        if isRequesting {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.horizontal, 8)
+                        } else {
+                            Text("Enable Automation")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isRequesting)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(isRequesting)
             }
+            .frame(height: 44)
 
             Spacer()
 

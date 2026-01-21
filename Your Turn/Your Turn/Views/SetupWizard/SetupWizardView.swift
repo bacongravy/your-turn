@@ -47,6 +47,10 @@ struct SetupWizardView: View {
             .padding(.bottom, 20)
         }
         .frame(width: 500, height: 400)
+        .onReceive(NotificationCenter.default.publisher(for: .openSetup)) { _ in
+            // Reset to first step when wizard is opened (including re-run)
+            currentStep = 0
+        }
     }
 
     private func nextStep() {

@@ -33,71 +33,78 @@ struct HooksStep: View {
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 40)
 
-            // Disclosure for details
-            DisclosureGroup("What this does", isExpanded: $showDetails) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Creates config in ~/.claude/settings.json")
-                    Text("Deploys a script to ~/.claude/hooks/")
+            // Disclosure for details - constrained height
+            VStack {
+                DisclosureGroup("What this does", isExpanded: $showDetails) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Creates config in ~/.claude/settings.json")
+                        Text("Deploys a script to ~/.claude/hooks/")
+                    }
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
                 }
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .padding(.top, 8)
+                .padding(.horizontal, 60)
             }
-            .padding(.horizontal, 60)
+            .frame(height: 80)
 
             Spacer()
 
-            // Status/action area
-            if isInstalled {
-                // Success state
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Hooks installed successfully")
-                        .foregroundStyle(.secondary)
-                }
-                .font(.body)
-            } else if let error = installError {
-                // Error state
-                VStack(spacing: 8) {
+            // Status/action area - fixed height to prevent layout shift
+            VStack(spacing: 12) {
+                if isInstalled {
+                    // Success state
                     HStack(spacing: 8) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.red)
-                        Text("Installation failed")
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Hooks installed successfully")
+                            .foregroundStyle(.secondary)
                     }
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                    .font(.body)
+                } else if let error = installError {
+                    // Error state
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                            Text("Installation failed")
+                        }
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
-                Button("Retry") {
-                    installHooks()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(isInstalling)
-            } else {
-                // Initial state
-                Button {
-                    installHooks()
-                } label: {
-                    if isInstalling {
-                        ProgressView()
-                            .controlSize(.small)
-                            .padding(.horizontal, 8)
-                    } else {
-                        Text("Install Hooks")
+                    Button("Retry") {
+                        installHooks()
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isInstalling)
+                } else {
+                    // Initial state
+                    Button {
+                        installHooks()
+                    } label: {
+                        if isInstalling {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.horizontal, 8)
+                        } else {
+                            Text("Install Hooks")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isInstalling)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(isInstalling)
             }
+            .frame(height: 60)
 
             Spacer()
 
-            // Navigation
+            // Navigation - always show both buttons
             HStack {
                 Button("Back") {
                     onBack()
@@ -106,12 +113,11 @@ struct HooksStep: View {
 
                 Spacer()
 
-                if isInstalled {
-                    Button("Continue") {
-                        onContinue()
-                    }
-                    .buttonStyle(.borderedProminent)
+                Button("Continue") {
+                    onContinue()
                 }
+                .buttonStyle(.borderedProminent)
+                .disabled(!isInstalled)
             }
             .padding(.horizontal, 40)
 

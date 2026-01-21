@@ -30,6 +30,7 @@ struct WelcomeStep: View {
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 40)
 
             Spacer()
