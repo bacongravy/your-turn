@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-/// Container view for the 5-step setup wizard
+/// Container view for the 6-step setup wizard
 struct SetupWizardView: View {
     @State private var currentStep = 0
-    let totalSteps = 5
+    let totalSteps = 6
     let onComplete: () -> Void
 
     var body: some View {
@@ -27,6 +27,8 @@ struct SetupWizardView: View {
                 case 3:
                     NotificationsStep(onContinue: nextStep, onBack: prevStep)
                 case 4:
+                    LaunchAtLoginStep(onContinue: nextStep, onBack: prevStep)
+                case 5:
                     CompleteStep(onFinish: onComplete)
                 default:
                     EmptyView()

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Complete step (Step 4) - setup finished
+/// Complete step (Step 5) - setup finished
 struct CompleteStep: View {
     let onFinish: () -> Void
 
@@ -30,6 +30,7 @@ struct CompleteStep: View {
                 SummaryRow(icon: "checkmark", text: "Claude Code hooks installed")
                 SummaryRow(icon: "checkmark", text: "Terminal automation configured")
                 SummaryRow(icon: "checkmark", text: "Notifications enabled")
+                SummaryRow(icon: "checkmark", text: "Launch at login configured")
             }
             .padding(.horizontal, 40)
 
