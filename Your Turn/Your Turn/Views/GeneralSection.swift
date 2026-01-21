@@ -12,38 +12,41 @@ import ServiceManagement
 struct GeneralSection: View {
     @State private var launchAtLogin = false
     @AppStorage("notify.sound") private var selectedSound: String = ""
-    @State private var sounds: [SystemSound] = []
+
+    /// System sounds loaded synchronously to ensure Picker tags are available on first render
+    private var sounds: [SystemSound] {
+        SystemSound.getSystemSounds()
+    }
 
     var body: some View {
         Section {
             ToggleRow(
-                title: "Launch at Login",
+                title: "Launch at login",
                 subtitle: "Start automatically when you log in",
                 isOn: $launchAtLogin
             )
 
-            Picker("Notification sound", selection: $selectedSound) {
-                Text(SystemSound.none.name).tag(SystemSound.none.filename)
-                Divider()
-                ForEach(sounds) { sound in
-                    Text(sound.name).tag(sound.filename)
+            VStack(alignment: .leading, spacing: 4) {
+                Picker("Notification sound", selection: $selectedSound) {
+                    Text(SystemSound.none.name).tag(SystemSound.none.filename)
+                    Divider()
+                    ForEach(sounds) { sound in
+                        Text(sound.name).tag(sound.filename)
+                    }
                 }
-            }
-            .onChange(of: selectedSound) { _, newValue in
-                playSound(newValue)
+                .onChange(of: selectedSound) { _, newValue in
+                    playSound(newValue)
+                }
+                Text("Play a sound with each notification")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
         } header: {
             Text("General")
         }
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
-            sounds = SystemSound.getSystemSounds()
-            if selectedSound.isEmpty {
-                selectedSound = SystemSound.defaultSound()?.filename ?? ""
-            }
-            if !selectedSound.isEmpty && !sounds.contains(where: { $0.filename == selectedSound }) {
-                selectedSound = SystemSound.defaultSound()?.filename ?? ""
-            }
+            initializeSelectedSound()
         }
         .onChange(of: launchAtLogin) { _, newValue in
             do {
@@ -56,6 +59,14 @@ struct GeneralSection: View {
                 // Silent failure - revert toggle per CONTEXT.md
                 launchAtLogin = SMAppService.mainApp.status == .enabled
             }
+        }
+    }
+
+    private func initializeSelectedSound() {
+        if selectedSound.isEmpty {
+            selectedSound = SystemSound.defaultSound()?.filename ?? ""
+        } else if !sounds.contains(where: { $0.filename == selectedSound }) {
+            selectedSound = SystemSound.defaultSound()?.filename ?? ""
         }
     }
 
