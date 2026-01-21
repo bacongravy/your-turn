@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct SettingsView: View {
+    var socketServer: SocketServer?
+
     var body: some View {
         Form {
-            GeneralSection()
+            GeneralSection(socketServer: socketServer)
             EventsSection()
             SoundSection()
             AboutSection()
