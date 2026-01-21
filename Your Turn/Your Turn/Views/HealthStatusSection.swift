@@ -24,8 +24,7 @@ struct HealthStatusSection: View {
             HealthCheckRow(
                 title: "Socket Server Running",
                 subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
-                state: healthService.status.socket,
-                onAction: nil  // No repair possible, app restart needed
+                state: healthService.status.socket
             )
 
             HealthCheckRow(
@@ -98,7 +97,7 @@ private struct HealthCheckRow: View {
     var subtitle: String?
     let state: CheckState
     var actionLabel: String = "Fix"
-    let onAction: (() async -> Void)?
+    var onAction: (() async -> Void)? = nil
     var okActionLabel: String? = nil
     var onOkAction: (() async -> Void)? = nil
 
@@ -140,9 +139,9 @@ private struct HealthCheckRow: View {
 
     /// Returns the appropriate button label and action based on current state
     private var currentAction: (String, () async -> Void)? {
-        if (state == .failed || state == .unknown), let onAction = onAction {
+        if (state == CheckState.failed || state == CheckState.unknown), let onAction = onAction {
             return (actionLabel, onAction)
-        } else if state == .ok, let okLabel = okActionLabel, let okAction = onOkAction {
+        } else if state == CheckState.ok, let okLabel = okActionLabel, let okAction = onOkAction {
             return (okLabel, okAction)
         }
         return nil
