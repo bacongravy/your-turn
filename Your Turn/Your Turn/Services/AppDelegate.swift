@@ -6,17 +6,102 @@
 //
 
 import AppKit
+import SwiftUI
 import UserNotifications
 
-/// Application delegate handling notification lifecycle and presentation.
-/// Must be set as UNUserNotificationCenter delegate before any notifications are posted.
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+/// Application delegate handling notification lifecycle, presentation, and window management.
+/// Menu bar apps should create windows programmatically, not via Window scenes.
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
+
+    private var setupWindow: NSWindow?
+    private var settingsWindow: NSWindow?
 
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set notification delegate early, before any notifications are posted
         UNUserNotificationCenter.current().delegate = self
+
+        // Listen for window open requests
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openSetupWindow),
+            name: .openSetup,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openSettingsWindow),
+            name: .openSettings,
+            object: nil
+        )
+
+        // Open setup window on first launch
+        if !UserDefaults.standard.bool(forKey: "setupComplete") {
+            openSetupWindow()
+        }
+    }
+
+    // MARK: - Window Management
+
+    @objc private func openSetupWindow() {
+        if setupWindow == nil {
+            let contentView = SetupWizardView(onComplete: { [weak self] in
+                UserDefaults.standard.set(true, forKey: "setupComplete")
+                self?.setupWindow?.close()
+                self?.setupWindow = nil
+                NSApp.setActivationPolicy(.accessory)
+            })
+
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
+                styleMask: [.titled, .closable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.contentView = NSHostingView(rootView: contentView)
+            window.center()
+            window.isReleasedWhenClosed = false
+            setupWindow = window
+        }
+
+        NSApp.setActivationPolicy(.regular)
+        setupWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func openSettingsWindow() {
+        if settingsWindow == nil {
+            let contentView = SettingsView()
+
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 450, height: 500),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "Your Turn Settings"
+            window.contentView = NSHostingView(rootView: contentView)
+            window.center()
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            settingsWindow = window
+        }
+
+        NSApp.setActivationPolicy(.regular)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - NSWindowDelegate
+
+    func windowWillClose(_ notification: Notification) {
+        // Return to accessory mode when settings window closes
+        if (notification.object as? NSWindow) == settingsWindow {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
