@@ -8,75 +8,44 @@
 import SwiftUI
 import ServiceManagement
 
-/// Launch at Login step (Step 4) - opt-in to auto-start
+/// Launch at Login step - opt-in to auto-start
 struct LaunchAtLoginStep: View {
-    let onContinue: () -> Void
+    let onContinue: (Bool) -> Void  // Reports whether launch at login was enabled
     let onBack: () -> Void
 
-    @State private var enableLaunchAtLogin = true  // Default ON per CONTEXT.md
+    @State private var enableLaunchAtLogin = true  // Default ON
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        WizardStepLayout(
+            title: "Launch at Login",
+            subtitle: "Would you like Your Turn to start automatically when you log in?",
+            onBack: onBack,
+            onContinue: {
+                applyChoice()
+                onContinue(enableLaunchAtLogin)
+            }
+        ) {
+            VStack(spacing: 12) {
+                Toggle("Launch at Login", isOn: $enableLaunchAtLogin)
+                    .toggleStyle(.switch)
 
-            // Title
-            Text("Launch at Login")
-                .font(.title)
-                .fontWeight(.bold)
-
-            // Explanation
-            Text("Would you like Your Turn to start automatically when you log in?")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            // Benefit text
-            Text("This ensures you never miss a Claude notification.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Spacer()
-
-            // Toggle
-            Toggle("Launch at Login", isOn: $enableLaunchAtLogin)
-                .toggleStyle(.switch)
-                .padding(.horizontal, 60)
-
-            Spacer()
-
-            // Navigation
-            HStack {
-                Button("Back") {
-                    onBack()
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Button("Continue") {
-                    applyChoice()
-                    onContinue()
-                }
-                .buttonStyle(.borderedProminent)
+                Text("This ensures you never miss a Claude notification.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 40)
         }
-        .padding()
     }
 
     private func applyChoice() {
         if enableLaunchAtLogin {
-            // Register with SMAppService, silent failure
             try? SMAppService.mainApp.register()
         }
-        // If disabled, do nothing (don't unregister - user hasn't enabled it yet)
     }
 }
 
 #Preview {
-    LaunchAtLoginStep(onContinue: {}, onBack: {})
-        .frame(width: 500, height: 350)
+    LaunchAtLoginStep(onContinue: { _ in }, onBack: {})
+        .frame(width: 500, height: 340)
 }

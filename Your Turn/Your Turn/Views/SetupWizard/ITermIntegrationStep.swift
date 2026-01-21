@@ -1,5 +1,5 @@
 //
-//  AutomationStep.swift
+//  ITermIntegrationStep.swift
 //  Your Turn
 //
 //  Created by Claude on 1/20/26.
@@ -8,48 +8,30 @@
 import SwiftUI
 
 /// Automation permission result
-private enum AutomationResult {
+private enum AutomationResult: Equatable {
     case success
-    case notInstalled
     case denied
     case error(String)
 }
 
-/// Automation permission step (Step 2) - optional terminal automation
-struct AutomationStep: View {
-    let onContinue: () -> Void
+/// iTerm Integration step - requests automation permission for iTerm2
+/// This step is only shown when iTerm2 is installed
+struct ITermIntegrationStep: View {
+    let onContinue: (Bool) -> Void  // Reports whether automation was configured
     let onBack: () -> Void
 
     @State private var isRequesting = false
     @State private var automationResult: AutomationResult?
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            // Title
-            Text("Terminal Automation (Optional)")
-                .font(.title)
-                .fontWeight(.bold)
-
-            // Explanation
-            Text("To focus the right terminal session when you click a notification, Your Turn needs automation access.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            // Note
-            Text("You can enable this later in System Settings > Privacy & Security > Automation")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Spacer()
-
-            // Action area - fixed height to prevent layout shift
-            VStack {
+        WizardStepLayout(
+            title: "iTerm Integration",
+            subtitle: "To focus the right terminal session when you click a notification, Your Turn needs automation access.",
+            onBack: onBack,
+            onContinue: { onContinue(automationResult == .success) },
+            continueLabel: continueButtonLabel
+        ) {
+            VStack(spacing: 12) {
                 if let result = automationResult {
                     resultView(for: result)
                 } else {
@@ -67,36 +49,24 @@ struct AutomationStep: View {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(isRequesting)
+
+                    Text("You can enable this later in System Settings > Privacy & Security > Automation")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 8)
                 }
             }
-            .frame(height: 44)
-
-            Spacer()
-
-            // Navigation
-            HStack {
-                Button("Back") {
-                    onBack()
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                if automationResult != nil {
-                    Button("Continue") {
-                        onContinue()
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    Button("Skip") {
-                        onContinue()
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-            .padding(.horizontal, 40)
         }
-        .padding()
+    }
+
+    private var continueButtonLabel: String {
+        switch automationResult {
+        case .success:
+            return "Continue"
+        case .denied, .error, .none:
+            return "Skip"
+        }
     }
 
     @ViewBuilder
@@ -110,19 +80,6 @@ struct AutomationStep: View {
                     .foregroundStyle(.secondary)
             }
             .font(.body)
-
-        case .notInstalled:
-            VStack(spacing: 4) {
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle.fill")
-                        .foregroundStyle(.blue)
-                    Text("iTerm2 not found")
-                        .foregroundStyle(.secondary)
-                }
-                Text("Install iTerm2 to enable session focusing")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
 
         case .denied:
             VStack(spacing: 4) {
@@ -156,8 +113,6 @@ struct AutomationStep: View {
         isRequesting = true
 
         Task {
-            // Run AppleScript to trigger the automation permission dialog
-            // This requires iTerm2 to be installed and will prompt for permission
             let script = NSAppleScript(source: """
                 tell application "iTerm"
                     set windowCount to count of windows
@@ -171,25 +126,17 @@ struct AutomationStep: View {
                 isRequesting = false
 
                 if let error = errorInfo {
-                    // Check for specific error conditions
                     let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
                     let errorMessage = error[NSAppleScript.errorMessage] as? String ?? "Unknown error"
 
-                    // Error -1728: Can't get application (not installed)
-                    // Error -600: Application isn't running (not installed or not found)
-                    // Error -1743: User denied permission
-                    if errorNumber == -1728 || errorNumber == -600 {
-                        automationResult = .notInstalled
-                    } else if errorNumber == -1743 {
+                    if errorNumber == -1743 {
                         automationResult = .denied
                     } else {
                         automationResult = .error(errorMessage)
                     }
                 } else if result != nil {
-                    // Script executed successfully
                     automationResult = .success
                 } else {
-                    // Script failed to execute but no error info
                     automationResult = .error("AppleScript execution failed")
                 }
             }
@@ -198,6 +145,6 @@ struct AutomationStep: View {
 }
 
 #Preview {
-    AutomationStep(onContinue: {}, onBack: {})
-        .frame(width: 500, height: 350)
+    ITermIntegrationStep(onContinue: { _ in }, onBack: {})
+        .frame(width: 500, height: 340)
 }

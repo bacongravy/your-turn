@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Hooks installation step (Step 1) - installs Claude Code hooks
+/// Hooks installation step - installs Claude Code hooks
 struct HooksStep: View {
     let onContinue: () -> Void
     let onBack: () -> Void
@@ -15,49 +15,19 @@ struct HooksStep: View {
     @State private var isInstalling = false
     @State private var isInstalled = false
     @State private var installError: String?
-    @State private var showDetails = false
 
     private let hookInstaller = HookInstaller()
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            // Title
-            Text("Install Claude Code Hooks")
-                .font(.title)
-                .fontWeight(.bold)
-
-            // Explanation
-            Text("Your Turn needs to install a hook that tells it when Claude stops working.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 40)
-
-            // Disclosure for details - anchored at top so it expands downward only
-            VStack(alignment: .leading) {
-                DisclosureGroup("What this does", isExpanded: $showDetails) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Creates config in ~/.claude/settings.json")
-                        Text("Deploys a script to ~/.claude/hooks/")
-                    }
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 8)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 60)
-            .frame(height: 80, alignment: .top)
-
-            Spacer()
-
-            // Status/action area - fixed height to prevent layout shift
+        WizardStepLayout(
+            title: "Install Claude Code Hooks",
+            subtitle: "Your Turn needs to install a hook that tells it when Claude stops working.",
+            onBack: onBack,
+            onContinue: onContinue,
+            continueDisabled: !isInstalled
+        ) {
             VStack(spacing: 12) {
                 if isInstalled {
-                    // Success state
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
@@ -66,7 +36,6 @@ struct HooksStep: View {
                     }
                     .font(.body)
                 } else if let error = installError {
-                    // Error state
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
                             Image(systemName: "xmark.circle.fill")
@@ -84,7 +53,6 @@ struct HooksStep: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(isInstalling)
                 } else {
-                    // Initial state
                     Button {
                         installHooks()
                     } label: {
@@ -99,32 +67,20 @@ struct HooksStep: View {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(isInstalling)
+
+                    // Info text below button - hidden when installed
+                    VStack(spacing: 4) {
+                        Text("Creates config in ~/.claude/settings.json")
+                        Text("Deploys a script to ~/.claude/hooks/")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
                 }
             }
-            .frame(height: 60)
-
-            Spacer()
-
-            // Navigation - always show both buttons
-            HStack {
-                Button("Back") {
-                    onBack()
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Button("Continue") {
-                    onContinue()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!isInstalled)
-            }
-            .padding(.horizontal, 40)
         }
-        .padding()
         .onAppear {
-            // Check if already installed
             if hookInstaller.isInstalled() {
                 isInstalled = true
             }
@@ -135,7 +91,6 @@ struct HooksStep: View {
         isInstalling = true
         installError = nil
 
-        // Run installation on background thread
         Task {
             do {
                 try hookInstaller.installHooks()
@@ -155,5 +110,5 @@ struct HooksStep: View {
 
 #Preview {
     HooksStep(onContinue: {}, onBack: {})
-        .frame(width: 500, height: 350)
+        .frame(width: 500, height: 340)
 }

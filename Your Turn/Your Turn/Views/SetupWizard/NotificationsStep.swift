@@ -8,42 +8,29 @@
 import SwiftUI
 import UserNotifications
 
-/// Notifications permission step (Step 3) - request notification access
+/// Notifications permission step - request notification access
 struct NotificationsStep: View {
-    let onContinue: () -> Void
+    let onContinue: (Bool) -> Void  // Reports whether notifications were enabled
     let onBack: () -> Void
 
     @State private var isRequesting = false
     @State private var authorizationStatus: UNAuthorizationStatus?
     @State private var showDeniedMessage = false
 
-    /// Publisher for app activation (works with programmatic NSWindow)
     private let appDidBecomeActive = NotificationCenter.default.publisher(
         for: NSApplication.didBecomeActiveNotification
     )
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            // Title
-            Text("Enable Notifications")
-                .font(.title)
-                .fontWeight(.bold)
-
-            // Explanation
-            Text("Your Turn uses macOS notifications to alert you when Claude needs attention.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Spacer()
-
-            // Status/action area - fixed height to prevent layout jumps
-            Group {
+        WizardStepLayout(
+            title: "Enable Notifications",
+            subtitle: "Your Turn uses macOS notifications to alert you when Claude needs your attention.",
+            onBack: onBack,
+            onContinue: { onContinue(authorizationStatus == .authorized) },
+            continueLabel: continueButtonLabel
+        ) {
+            VStack(spacing: 12) {
                 if authorizationStatus == .authorized {
-                    // Already authorized
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
@@ -52,7 +39,6 @@ struct NotificationsStep: View {
                     }
                     .font(.body)
                 } else if showDeniedMessage {
-                    // Denied - show instructions
                     VStack(spacing: 12) {
                         HStack(spacing: 8) {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -71,9 +57,9 @@ struct NotificationsStep: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
-                    // Initial state
                     Button {
                         requestNotifications()
                     } label: {
@@ -90,33 +76,22 @@ struct NotificationsStep: View {
                     .disabled(isRequesting)
                 }
             }
-            .frame(minHeight: 100)
-
-            Spacer()
-
-            // Navigation
-            HStack {
-                Button("Back") {
-                    onBack()
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Button("Continue") {
-                    onContinue()
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 40)
         }
-        .padding()
         .onAppear {
             checkCurrentStatus()
         }
         .onReceive(appDidBecomeActive) { _ in
-            // Re-check when returning from System Settings
             checkCurrentStatus()
+        }
+    }
+
+    private var continueButtonLabel: String {
+        if authorizationStatus == .authorized {
+            return "Continue"
+        } else if showDeniedMessage {
+            return "Skip"
+        } else {
+            return "Continue"
         }
     }
 
@@ -124,7 +99,6 @@ struct NotificationsStep: View {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             DispatchQueue.main.async {
                 authorizationStatus = settings.authorizationStatus
-                // Update denied message based on current status
                 showDeniedMessage = settings.authorizationStatus == .denied
             }
         }
@@ -133,13 +107,12 @@ struct NotificationsStep: View {
     private func requestNotifications() {
         isRequesting = true
 
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 isRequesting = false
                 if granted {
                     authorizationStatus = .authorized
-                    // Auto-advance on success
-                    onContinue()
+                    onContinue(true)
                 } else {
                     showDeniedMessage = true
                     authorizationStatus = .denied
@@ -150,6 +123,6 @@ struct NotificationsStep: View {
 }
 
 #Preview {
-    NotificationsStep(onContinue: {}, onBack: {})
-        .frame(width: 500, height: 350)
+    NotificationsStep(onContinue: { _ in }, onBack: {})
+        .frame(width: 500, height: 340)
 }

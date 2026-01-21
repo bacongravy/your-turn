@@ -7,9 +7,11 @@
 
 import SwiftUI
 
-/// Complete step (Step 5) - setup finished
+/// Complete step - setup finished
 struct CompleteStep: View {
     let onFinish: () -> Void
+    let isITermInstalled: Bool
+    let status: WizardStatus
 
     var body: some View {
         VStack(spacing: 24) {
@@ -27,10 +29,31 @@ struct CompleteStep: View {
 
             // Summary
             VStack(alignment: .leading, spacing: 8) {
-                SummaryRow(icon: "checkmark", text: "Claude Code hooks installed")
-                SummaryRow(icon: "checkmark", text: "Terminal automation configured")
-                SummaryRow(icon: "checkmark", text: "Notifications enabled")
-                SummaryRow(icon: "checkmark", text: "Launch at login configured")
+                // Hooks always succeed (can't continue without them)
+                SummaryRow(enabled: true, enabledText: "Claude Code hooks installed", disabledText: "")
+
+                // iTerm row only if iTerm is installed
+                if isITermInstalled {
+                    SummaryRow(
+                        enabled: status.iTermConfigured,
+                        enabledText: "iTerm integration configured",
+                        disabledText: "iTerm integration not configured"
+                    )
+                }
+
+                // Notifications
+                SummaryRow(
+                    enabled: status.notificationsEnabled,
+                    enabledText: "Notifications enabled",
+                    disabledText: "Notifications not enabled"
+                )
+
+                // Launch at login
+                SummaryRow(
+                    enabled: status.launchAtLoginEnabled,
+                    enabledText: "Launch at login enabled",
+                    disabledText: "Launch at login not enabled"
+                )
             }
             .padding(.horizontal, 40)
 
@@ -55,24 +78,47 @@ struct CompleteStep: View {
     }
 }
 
-/// Helper view for summary checkmark rows
+/// Helper view for summary rows with status
 private struct SummaryRow: View {
-    let icon: String
-    let text: String
+    let enabled: Bool
+    let enabledText: String
+    let disabledText: String
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(.green)
+            Image(systemName: enabled ? "checkmark" : "xmark")
+                .foregroundStyle(enabled ? .green : .red)
                 .font(.caption)
-            Text(text)
+            Text(enabled ? enabledText : disabledText)
                 .font(.body)
                 .foregroundStyle(.secondary)
         }
     }
 }
 
-#Preview {
-    CompleteStep(onFinish: {})
-        .frame(width: 500, height: 350)
+#Preview("All enabled") {
+    CompleteStep(
+        onFinish: {},
+        isITermInstalled: true,
+        status: WizardStatus(notificationsEnabled: true, iTermConfigured: true, launchAtLoginEnabled: true)
+    )
+    .frame(width: 500, height: 340)
+}
+
+#Preview("Some disabled") {
+    CompleteStep(
+        onFinish: {},
+        isITermInstalled: true,
+        status: WizardStatus(notificationsEnabled: false, iTermConfigured: false, launchAtLoginEnabled: true)
+    )
+    .frame(width: 500, height: 340)
+}
+
+#Preview("No iTerm") {
+    CompleteStep(
+        onFinish: {},
+        isITermInstalled: false,
+        status: WizardStatus(notificationsEnabled: true, iTermConfigured: false, launchAtLoginEnabled: false)
+    )
+    .frame(width: 500, height: 340)
 }
