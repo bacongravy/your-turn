@@ -1,0 +1,71 @@
+//
+//  SetupWizardView.swift
+//  Your Turn
+//
+//  Created by Claude on 1/20/26.
+//
+
+import SwiftUI
+
+/// Container view for the 5-step setup wizard
+struct SetupWizardView: View {
+    @State private var currentStep = 0
+    let totalSteps = 5
+    let onComplete: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Step content
+            Group {
+                switch currentStep {
+                case 0:
+                    WelcomeStep(onContinue: nextStep)
+                case 1:
+                    HooksStep(onContinue: nextStep, onBack: prevStep)
+                case 2:
+                    AutomationStep(onContinue: nextStep, onBack: prevStep)
+                case 3:
+                    NotificationsStep(onContinue: nextStep, onBack: prevStep)
+                case 4:
+                    CompleteStep(onFinish: onComplete)
+                default:
+                    EmptyView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Spacer()
+
+            // Progress dots
+            HStack(spacing: 8) {
+                ForEach(0..<totalSteps, id: \.self) { index in
+                    Circle()
+                        .fill(index <= currentStep ? Color.accentColor : Color.gray.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .padding(.bottom, 20)
+        }
+        .frame(width: 500, height: 400)
+    }
+
+    private func nextStep() {
+        if currentStep < totalSteps - 1 {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                currentStep += 1
+            }
+        }
+    }
+
+    private func prevStep() {
+        if currentStep > 0 {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                currentStep -= 1
+            }
+        }
+    }
+}
+
+#Preview {
+    SetupWizardView(onComplete: {})
+}
