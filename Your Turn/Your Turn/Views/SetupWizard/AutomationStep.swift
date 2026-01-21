@@ -7,13 +7,21 @@
 
 import SwiftUI
 
+/// Automation permission result
+private enum AutomationResult {
+    case success
+    case notInstalled
+    case denied
+    case error(String)
+}
+
 /// Automation permission step (Step 2) - optional terminal automation
 struct AutomationStep: View {
     let onContinue: () -> Void
     let onBack: () -> Void
 
     @State private var isRequesting = false
-    @State private var hasRequested = false
+    @State private var automationResult: AutomationResult?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -42,14 +50,8 @@ struct AutomationStep: View {
 
             // Action area - fixed height to prevent layout shift
             VStack {
-                if hasRequested {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Permission requested")
-                            .foregroundStyle(.secondary)
-                    }
-                    .font(.body)
+                if let result = automationResult {
+                    resultView(for: result)
                 } else {
                     Button {
                         requestAutomation()
@@ -80,7 +82,7 @@ struct AutomationStep: View {
 
                 Spacer()
 
-                if hasRequested {
+                if automationResult != nil {
                     Button("Continue") {
                         onContinue()
                     }
@@ -97,12 +99,65 @@ struct AutomationStep: View {
         .padding()
     }
 
+    @ViewBuilder
+    private func resultView(for result: AutomationResult) -> some View {
+        switch result {
+        case .success:
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("Automation enabled")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.body)
+
+        case .notInstalled:
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(.blue)
+                    Text("iTerm2 not found")
+                        .foregroundStyle(.secondary)
+                }
+                Text("Install iTerm2 to enable session focusing")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .denied:
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.orange)
+                    Text("Permission denied")
+                        .foregroundStyle(.secondary)
+                }
+                Text("Grant access in System Settings > Privacy > Automation")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .error(let message):
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.yellow)
+                    Text("Could not enable automation")
+                        .foregroundStyle(.secondary)
+                }
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private func requestAutomation() {
         isRequesting = true
 
         Task {
-            // Launch iTerm2 first (required for automation prompt to appear)
-            // Then run AppleScript to trigger the automation permission dialog
+            // Run AppleScript to trigger the automation permission dialog
+            // This requires iTerm2 to be installed and will prompt for permission
             let script = NSAppleScript(source: """
                 tell application "iTerm"
                     set windowCount to count of windows
@@ -110,13 +165,33 @@ struct AutomationStep: View {
             """)
 
             var errorInfo: NSDictionary?
-            script?.executeAndReturnError(&errorInfo)
+            let result = script?.executeAndReturnError(&errorInfo)
 
-            // If iTerm2 isn't installed, the script fails silently
-            // User can still skip this step
             await MainActor.run {
                 isRequesting = false
-                hasRequested = true
+
+                if let error = errorInfo {
+                    // Check for specific error conditions
+                    let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
+                    let errorMessage = error[NSAppleScript.errorMessage] as? String ?? "Unknown error"
+
+                    // Error -1728: Can't get application (not installed)
+                    // Error -600: Application isn't running (not installed or not found)
+                    // Error -1743: User denied permission
+                    if errorNumber == -1728 || errorNumber == -600 {
+                        automationResult = .notInstalled
+                    } else if errorNumber == -1743 {
+                        automationResult = .denied
+                    } else {
+                        automationResult = .error(errorMessage)
+                    }
+                } else if result != nil {
+                    // Script executed successfully
+                    automationResult = .success
+                } else {
+                    // Script failed to execute but no error info
+                    automationResult = .error("AppleScript execution failed")
+                }
             }
         }
     }
