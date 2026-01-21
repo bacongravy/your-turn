@@ -105,10 +105,6 @@ struct AutomationStep: View {
             // Then run AppleScript to trigger the automation permission dialog
             let script = NSAppleScript(source: """
                 tell application "iTerm"
-                    activate
-                    -- Small delay to ensure app is ready
-                    delay 0.5
-                    -- This triggers the automation permission prompt
                     set windowCount to count of windows
                 end tell
             """)
