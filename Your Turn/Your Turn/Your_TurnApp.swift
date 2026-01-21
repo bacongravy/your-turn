@@ -76,8 +76,16 @@ struct MenuBarContentView: View {
 @main
 struct Your_TurnApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var socketServer = SocketServer()
+    @StateObject private var socketServer: SocketServer
     @AppStorage("setupComplete") private var setupComplete = false
+
+    init() {
+        // Create socket server and set shared reference immediately
+        // This ensures it's available before any views try to access it
+        let server = SocketServer()
+        _socketServer = StateObject(wrappedValue: server)
+        SocketServer.shared = server
+    }
 
     var body: some Scene {
         // Menu bar only - windows are created programmatically by AppDelegate
@@ -88,10 +96,6 @@ struct Your_TurnApp: App {
                 } else {
                     SetupPendingMenu()
                 }
-            }
-            .onAppear {
-                // Make socket server accessible for settings window health checks
-                SocketServer.shared = socketServer
             }
         }
     }
