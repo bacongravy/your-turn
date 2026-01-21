@@ -12,10 +12,9 @@ struct AboutSection: View {
         HStack {
             Spacer()
             Text("Your Turn v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
-                .font(.caption)
+                .font(.headline)
                 .foregroundStyle(.secondary)
             Spacer()
         }
-        .padding(.top, 8)
     }
 }

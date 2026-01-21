@@ -22,6 +22,13 @@ struct HealthStatusSection: View {
     var body: some View {
         Section {
             HealthCheckRow(
+                title: "Socket Server Running",
+                subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
+                state: healthService.status.socket,
+                onAction: nil  // No repair possible, app restart needed
+            )
+
+            HealthCheckRow(
                 title: "Hooks Installed",
                 state: healthService.status.hooks,
                 onAction: repairHooks
@@ -38,13 +45,6 @@ struct HealthStatusSection: View {
                 state: healthService.status.automation,
                 actionLabel: healthService.status.automation == .unknown ? "Check" : "Fix",
                 onAction: healthService.status.automation == .unknown ? checkAutomation : fixAutomation
-            )
-
-            HealthCheckRow(
-                title: "Socket Server Running",
-                subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
-                state: healthService.status.socket,
-                onAction: nil  // No repair possible, app restart needed
             )
 
         } header: {
