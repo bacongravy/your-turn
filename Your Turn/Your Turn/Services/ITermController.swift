@@ -21,11 +21,17 @@ final class ITermController {
 
     /// Focus a specific iTerm2 session by its unique ID.
     /// Falls back to activating iTerm2 without session focus if session not found.
+    /// - Parameter termSessionId: The TERM_SESSION_ID value (format: wXtYpZ:UUID)
     func focusSession(termSessionId: String) {
         guard isiTermRunning() else {
             logger.debug("iTerm2 not running, skipping focus")
             return
         }
+
+        // Extract UUID from TERM_SESSION_ID format "wXtYpZ:UUID"
+        // The wXtYpZ prefix encodes window/tab/pane position, but AppleScript
+        // uses only the UUID portion as the session's "unique id"
+        let sessionUUID = extractSessionUUID(from: termSessionId)
 
         // AppleScript iterates all windows/tabs/sessions to find match
         // Uses set index + activate for surgical window raising
@@ -34,7 +40,7 @@ final class ITermController {
                 repeat with aWindow in windows
                     repeat with aTab in tabs of aWindow
                         repeat with aSession in sessions of aTab
-                            if unique id of aSession is "\(termSessionId)" then
+                            if unique id of aSession is "\(sessionUUID)" then
                                 select aSession
                                 select aTab
                                 set index of aWindow to 1
@@ -65,6 +71,16 @@ final class ITermController {
             end tell
             """
         executeScript(script)
+    }
+
+    /// Extract the UUID portion from TERM_SESSION_ID.
+    /// Format: "wXtYpZ:UUID" where wXtYpZ is window/tab/pane position.
+    /// Returns the full string if no colon found (defensive fallback).
+    private func extractSessionUUID(from termSessionId: String) -> String {
+        if let colonIndex = termSessionId.firstIndex(of: ":") {
+            return String(termSessionId[termSessionId.index(after: colonIndex)...])
+        }
+        return termSessionId
     }
 
     private func isiTermRunning() -> Bool {
