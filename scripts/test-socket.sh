@@ -34,10 +34,15 @@ usage() {
     echo "Options:"
     echo "  --help        Show this help message"
     echo ""
+    echo "Environment variables:"
+    echo "  TERM_PROGRAM      Terminal app name (default: iTerm.app)"
+    echo "  TERM_SESSION_ID   Terminal session ID (default: test-term-session)"
+    echo ""
     echo "Examples:"
-    echo "  $0                 # Send permission event"
-    echo "  $0 input           # Send input needed event"
-    echo "  $0 stop            # Send stop/complete event"
+    echo "  $0                              # Send permission event (iTerm.app)"
+    echo "  $0 input                        # Send input needed event"
+    echo "  TERM_PROGRAM=Apple_Terminal $0  # Test Terminal.app activation"
+    echo "  TERM_PROGRAM=WarpTerminal $0    # Test Warp activation"
 }
 
 check_socket() {
@@ -68,6 +73,7 @@ send_event() {
 # Generate a unique session ID for testing
 SESSION_ID="test-$(date +%s)"
 TERM_SESSION_ID="${TERM_SESSION_ID:-test-term-session}"
+TERM_PROGRAM="${TERM_PROGRAM:-iTerm.app}"
 CWD="${PWD}"
 PROJECT_NAME=$(basename "$CWD")
 
@@ -92,7 +98,7 @@ case "$EVENT_TYPE" in
         "description": "Delete important data"
     },
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "iTerm.app"
+    "term_program": "$TERM_PROGRAM"
 }
 EOF
 )
@@ -113,7 +119,7 @@ EOF
     "notification_type": "user",
     "message": "What color theme would you like?",
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "iTerm.app"
+    "term_program": "$TERM_PROGRAM"
 }
 EOF
 )
@@ -133,7 +139,7 @@ EOF
     "hook_event_name": "Stop",
     "stop_hook_active": true,
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "iTerm.app"
+    "term_program": "$TERM_PROGRAM"
 }
 EOF
 )
@@ -153,7 +159,7 @@ EOF
     "notification_type": "error",
     "message": "Build failed: 3 errors found",
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "iTerm.app"
+    "term_program": "$TERM_PROGRAM"
 }
 EOF
 )
