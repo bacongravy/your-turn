@@ -34,8 +34,7 @@ struct HealthStatusSection: View {
             )
 
             HealthCheckRow(
-                title: "Automation Permission",
-                subtitle: "Optional - enables session focusing",
+                title: "iTerm Integration",
                 state: healthService.status.automation,
                 actionLabel: healthService.status.automation == .unknown ? "Check" : "Fix",
                 onAction: healthService.status.automation == .unknown ? checkAutomation : fixAutomation
@@ -48,13 +47,6 @@ struct HealthStatusSection: View {
                 onAction: nil  // No repair possible, app restart needed
             )
 
-            Divider()
-
-            Button("Re-run Setup Wizard...") {
-                setupComplete = false
-                NotificationCenter.default.post(name: .openSetup, object: nil)
-            }
-            .buttonStyle(.bordered)
         } header: {
             Text("Integration Status")
         }
