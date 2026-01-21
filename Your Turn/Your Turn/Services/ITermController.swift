@@ -34,17 +34,18 @@ final class ITermController {
         let sessionUUID = extractSessionUUID(from: termSessionId)
 
         // AppleScript iterates all windows/tabs/sessions to find match
-        // Uses set index + activate for surgical window raising
+        // Uses set index + do shell script "open -a iTerm" for surgical window raising
+        // NOTE: the order of the select and set index calls is important
         let script = """
             tell application "iTerm2"
                 repeat with aWindow in windows
                     repeat with aTab in tabs of aWindow
                         repeat with aSession in sessions of aTab
                             if unique id of aSession is "\(sessionUUID)" then
-                                select aSession
                                 select aTab
+                                select aSession
                                 set index of aWindow to 1
-                                activate
+                                do shell script "open -a iTerm"
                                 return true
                             end if
                         end repeat
