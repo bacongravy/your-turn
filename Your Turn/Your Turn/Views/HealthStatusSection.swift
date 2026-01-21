@@ -13,32 +13,38 @@ struct HealthStatusSection: View {
 
     var socketServer: SocketServer?
 
+    /// Publisher for app activation (works with programmatic NSWindow)
+    private let appDidBecomeActive = NotificationCenter.default.publisher(
+        for: NSApplication.didBecomeActiveNotification
+    )
+
     var body: some View {
         Section {
             HealthCheckRow(
                 title: "Hooks Installed",
                 state: healthService.status.hooks,
-                onFix: repairHooks
+                onAction: repairHooks
             )
 
             HealthCheckRow(
                 title: "Notifications Permitted",
                 state: healthService.status.notifications,
-                onFix: repairNotifications
+                onAction: repairNotifications
             )
 
             HealthCheckRow(
                 title: "Automation Permission",
                 subtitle: "Optional - enables session focusing",
                 state: healthService.status.automation,
-                onFix: repairAutomation
+                actionLabel: healthService.status.automation == .unknown ? "Check" : "Fix",
+                onAction: healthService.status.automation == .unknown ? checkAutomation : fixAutomation
             )
 
             HealthCheckRow(
                 title: "Socket Server Running",
                 subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
                 state: healthService.status.socket,
-                onFix: nil  // No repair possible, app restart needed
+                onAction: nil  // No repair possible, app restart needed
             )
         } header: {
             Text("Integration Status")
@@ -46,6 +52,12 @@ struct HealthStatusSection: View {
         .onAppear {
             // Use provided socketServer or fall back to shared instance
             healthService.socketServer = socketServer ?? SocketServer.shared
+            Task {
+                await healthService.checkAll()
+            }
+        }
+        .onReceive(appDidBecomeActive) { _ in
+            // Re-check when returning from System Settings
             Task {
                 await healthService.checkAll()
             }
@@ -66,8 +78,14 @@ struct HealthStatusSection: View {
         healthService.repairNotifications()
     }
 
-    private func repairAutomation() async {
-        healthService.repairAutomation()
+    private func checkAutomation() async {
+        // Just check, don't open settings
+        healthService.testAutomation(openSettingsOnFailure: false)
+    }
+
+    private func fixAutomation() async {
+        // Re-check and open settings if still failed
+        healthService.testAutomation(openSettingsOnFailure: true)
     }
 }
 
@@ -76,9 +94,10 @@ private struct HealthCheckRow: View {
     let title: String
     var subtitle: String?
     let state: CheckState
-    let onFix: (() async -> Void)?
+    var actionLabel: String = "Fix"
+    let onAction: (() async -> Void)?
 
-    @State private var isFixing = false
+    @State private var isActing = false
 
     var body: some View {
         HStack {
@@ -98,18 +117,18 @@ private struct HealthCheckRow: View {
 
             Spacer()
 
-            // Fix button - only show if failed and fixable
-            if state == .failed, let onFix = onFix {
-                Button("Fix") {
+            // Action button - show if failed/unknown and has action
+            if (state == .failed || state == .unknown), let onAction = onAction {
+                Button(actionLabel) {
                     Task {
-                        isFixing = true
-                        await onFix()
-                        isFixing = false
+                        isActing = true
+                        await onAction()
+                        isActing = false
                     }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(isFixing)
+                .disabled(isActing)
             }
         }
     }
@@ -125,6 +144,9 @@ private struct HealthCheckRow: View {
                 .foregroundStyle(.red)
         case .checking:
             Image(systemName: "circle.dotted")
+                .foregroundStyle(.secondary)
+        case .unknown:
+            Image(systemName: "questionmark.circle")
                 .foregroundStyle(.secondary)
         }
     }

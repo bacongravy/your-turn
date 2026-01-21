@@ -12,13 +12,14 @@ enum CheckState: Equatable {
     case ok
     case failed
     case checking
+    case unknown  // Not yet tested (user must explicitly trigger)
 }
 
 /// Aggregated health status for all integrations
 struct HealthStatus {
     var hooks: CheckState = .checking
     var notifications: CheckState = .checking
-    var automation: CheckState = .checking
+    var automation: CheckState = .unknown  // Don't auto-check (triggers permission dialog)
     var socket: CheckState = .checking
 
     /// Count of critical issues (excludes automation which is optional)

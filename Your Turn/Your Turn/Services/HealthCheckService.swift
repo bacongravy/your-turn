@@ -24,12 +24,18 @@ class HealthCheckService: ObservableObject {
     // MARK: - Health Checks
 
     /// Run all health checks and update status
+    /// Note: Automation is NOT checked automatically (triggers permission dialog)
     func checkAll() async {
         logger.debug("Running all health checks")
 
         status.hooks = checkHooks()
         status.notifications = await checkNotifications()
-        status.automation = checkAutomation()
+        // Don't check automation if in .unknown state - it triggers a permission dialog
+        // User must explicitly click "Test" to check automation status
+        // Re-check automation if it was failed (user may have fixed it in Privacy settings)
+        if status.automation == .failed {
+            testAutomation(openSettingsOnFailure: false)
+        }
         status.socket = checkSocket()
 
         logger.info("Health check complete: hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), automation=\(String(describing: self.status.automation)), socket=\(String(describing: self.status.socket))")
@@ -109,9 +115,12 @@ class HealthCheckService: ObservableObject {
         }
     }
 
-    /// Attempt to trigger automation permission dialog, then re-check
-    func repairAutomation() {
-        logger.info("Attempting to repair automation permission")
+    /// Check automation permission by triggering AppleScript
+    /// WARNING: This will show a permission dialog if not yet granted!
+    /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
+    /// - Parameter openSettingsOnFailure: If true and check fails, opens Privacy settings
+    func testAutomation(openSettingsOnFailure: Bool = false) {
+        logger.info("Checking automation permission (user-initiated)")
 
         // Execute AppleScript to trigger permission dialog
         let script = NSAppleScript(source: """
@@ -121,9 +130,16 @@ class HealthCheckService: ObservableObject {
         var errorInfo: NSDictionary?
         _ = script?.executeAndReturnError(&errorInfo)
 
-        // Re-check status
+        // Check the result
         status.automation = checkAutomation()
 
-        logger.info("Automation repair complete: \(String(describing: self.status.automation))")
+        logger.info("Automation check complete: \(String(describing: self.status.automation))")
+
+        // If failed and requested, open Privacy settings so user can grant permission
+        if openSettingsOnFailure && status.automation == .failed {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
+                NSWorkspace.shared.open(url)
+            }
+        }
     }
 }

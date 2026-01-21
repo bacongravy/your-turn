@@ -17,6 +17,11 @@ struct NotificationsStep: View {
     @State private var authorizationStatus: UNAuthorizationStatus?
     @State private var showDeniedMessage = false
 
+    /// Publisher for app activation (works with programmatic NSWindow)
+    private let appDidBecomeActive = NotificationCenter.default.publisher(
+        for: NSApplication.didBecomeActiveNotification
+    )
+
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -35,54 +40,57 @@ struct NotificationsStep: View {
 
             Spacer()
 
-            // Status/action area
-            if authorizationStatus == .authorized {
-                // Already authorized
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Notifications enabled")
-                        .foregroundStyle(.secondary)
-                }
-                .font(.body)
-            } else if showDeniedMessage {
-                // Denied - show instructions
-                VStack(spacing: 12) {
+            // Status/action area - fixed height to prevent layout jumps
+            Group {
+                if authorizationStatus == .authorized {
+                    // Already authorized
                     HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text("Notifications are disabled")
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Notifications enabled")
+                            .foregroundStyle(.secondary)
                     }
+                    .font(.body)
+                } else if showDeniedMessage {
+                    // Denied - show instructions
+                    VStack(spacing: 12) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Notifications are disabled")
+                        }
 
-                    Button("Open Notification Settings") {
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
-                            NSWorkspace.shared.open(url)
+                        Button("Open Notification Settings") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+
+                        Text("You can continue without notifications, but you won't receive alerts.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                } else {
+                    // Initial state
+                    Button {
+                        requestNotifications()
+                    } label: {
+                        if isRequesting {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.horizontal, 8)
+                        } else {
+                            Text("Enable Notifications")
                         }
                     }
-                    .buttonStyle(.bordered)
-
-                    Text("You can continue without notifications, but you won't receive alerts.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isRequesting)
                 }
-            } else {
-                // Initial state
-                Button {
-                    requestNotifications()
-                } label: {
-                    if isRequesting {
-                        ProgressView()
-                            .controlSize(.small)
-                            .padding(.horizontal, 8)
-                    } else {
-                        Text("Enable Notifications")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(isRequesting)
             }
+            .frame(minHeight: 100)
 
             Spacer()
 
@@ -106,15 +114,18 @@ struct NotificationsStep: View {
         .onAppear {
             checkCurrentStatus()
         }
+        .onReceive(appDidBecomeActive) { _ in
+            // Re-check when returning from System Settings
+            checkCurrentStatus()
+        }
     }
 
     private func checkCurrentStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             DispatchQueue.main.async {
                 authorizationStatus = settings.authorizationStatus
-                if settings.authorizationStatus == .denied {
-                    showDeniedMessage = true
-                }
+                // Update denied message based on current status
+                showDeniedMessage = settings.authorizationStatus == .denied
             }
         }
     }
