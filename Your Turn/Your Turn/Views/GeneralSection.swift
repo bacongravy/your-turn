@@ -10,6 +10,7 @@ import ServiceManagement
 
 struct GeneralSection: View {
     @State private var launchAtLogin = false
+    @AppStorage("setupComplete") private var setupComplete = true
 
     var body: some View {
         Section {
@@ -23,6 +24,14 @@ struct GeneralSection: View {
                 if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
                     NSWorkspace.shared.open(url)
                 }
+            }
+            .buttonStyle(.bordered)
+
+            Divider()
+
+            Button("Re-run Setup Wizard...") {
+                setupComplete = false
+                NotificationCenter.default.post(name: .openSetup, object: nil)
             }
             .buttonStyle(.bordered)
         } header: {
