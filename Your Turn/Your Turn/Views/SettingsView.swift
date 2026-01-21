@@ -12,9 +12,9 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            GeneralSection(socketServer: socketServer)
+            HealthStatusSection(socketServer: socketServer)
+            GeneralSection()
             EventsSection()
-            SoundSection()
             AboutSection()
         }
         .formStyle(.grouped)

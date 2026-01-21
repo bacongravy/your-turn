@@ -9,13 +9,13 @@ import SwiftUI
 
 struct AboutSection: View {
     var body: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your Turn")
-                    .font(.headline)
-                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
-                    .foregroundStyle(.secondary)
-            }
+        HStack {
+            Spacer()
+            Text("Your Turn v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
         }
+        .padding(.top, 8)
     }
 }

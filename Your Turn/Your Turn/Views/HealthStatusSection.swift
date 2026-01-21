@@ -10,6 +10,7 @@ import SwiftUI
 /// Displays health status checklist with per-item Fix buttons
 struct HealthStatusSection: View {
     @StateObject private var healthService = HealthCheckService()
+    @AppStorage("setupComplete") private var setupComplete = true
 
     var socketServer: SocketServer?
 
@@ -46,6 +47,14 @@ struct HealthStatusSection: View {
                 state: healthService.status.socket,
                 onAction: nil  // No repair possible, app restart needed
             )
+
+            Divider()
+
+            Button("Re-run Setup Wizard...") {
+                setupComplete = false
+                NotificationCenter.default.post(name: .openSetup, object: nil)
+            }
+            .buttonStyle(.bordered)
         } header: {
             Text("Integration Status")
         }

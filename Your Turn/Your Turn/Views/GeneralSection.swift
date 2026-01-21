@@ -5,18 +5,16 @@
 //  Created by Your Turn on 2026-01-20.
 //
 
+import AppKit
 import SwiftUI
 import ServiceManagement
 
 struct GeneralSection: View {
     @State private var launchAtLogin = false
-    @AppStorage("setupComplete") private var setupComplete = true
-
-    var socketServer: SocketServer?
+    @AppStorage("notify.sound") private var selectedSound: String = ""
+    @State private var sounds: [SystemSound] = []
 
     var body: some View {
-        HealthStatusSection(socketServer: socketServer)
-
         Section {
             ToggleRow(
                 title: "Launch at Login",
@@ -24,25 +22,28 @@ struct GeneralSection: View {
                 isOn: $launchAtLogin
             )
 
-            Button("Notification Settings...") {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
-                    NSWorkspace.shared.open(url)
+            Picker("Notification sound", selection: $selectedSound) {
+                Text(SystemSound.none.name).tag(SystemSound.none.filename)
+                Divider()
+                ForEach(sounds) { sound in
+                    Text(sound.name).tag(sound.filename)
                 }
             }
-            .buttonStyle(.bordered)
-
-            Divider()
-
-            Button("Re-run Setup Wizard...") {
-                setupComplete = false
-                NotificationCenter.default.post(name: .openSetup, object: nil)
+            .onChange(of: selectedSound) { _, newValue in
+                playSound(newValue)
             }
-            .buttonStyle(.bordered)
         } header: {
             Text("General")
         }
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
+            sounds = SystemSound.getSystemSounds()
+            if selectedSound.isEmpty {
+                selectedSound = SystemSound.defaultSound()?.filename ?? ""
+            }
+            if !selectedSound.isEmpty && !sounds.contains(where: { $0.filename == selectedSound }) {
+                selectedSound = SystemSound.defaultSound()?.filename ?? ""
+            }
         }
         .onChange(of: launchAtLogin) { _, newValue in
             do {
@@ -55,6 +56,14 @@ struct GeneralSection: View {
                 // Silent failure - revert toggle per CONTEXT.md
                 launchAtLogin = SMAppService.mainApp.status == .enabled
             }
+        }
+    }
+
+    private func playSound(_ filename: String) {
+        guard !filename.isEmpty else { return }
+        let soundPath = "/System/Library/Sounds/\(filename)"
+        if let sound = NSSound(contentsOf: URL(fileURLWithPath: soundPath), byReference: true) {
+            sound.play()
         }
     }
 }
