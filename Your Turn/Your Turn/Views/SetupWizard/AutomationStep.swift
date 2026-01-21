@@ -34,7 +34,7 @@ struct AutomationStep: View {
             // Note
             Text("You can enable this later in System Settings > Privacy & Security > Automation")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
@@ -93,9 +93,6 @@ struct AutomationStep: View {
                 }
             }
             .padding(.horizontal, 40)
-
-            Spacer()
-                .frame(height: 20)
         }
         .padding()
     }
@@ -103,19 +100,24 @@ struct AutomationStep: View {
     private func requestAutomation() {
         isRequesting = true
 
-        // Run AppleScript to trigger automation permission prompt for iTerm2
         Task {
-            // This will trigger the automation permission dialog
+            // Launch iTerm2 first (required for automation prompt to appear)
+            // Then run AppleScript to trigger the automation permission dialog
             let script = NSAppleScript(source: """
-                tell application id "com.googlecode.iterm2"
-                    name
+                tell application "iTerm"
+                    activate
+                    -- Small delay to ensure app is ready
+                    delay 0.5
+                    -- This triggers the automation permission prompt
+                    set windowCount to count of windows
                 end tell
             """)
 
             var errorInfo: NSDictionary?
             script?.executeAndReturnError(&errorInfo)
 
-            // We don't care about the result - just triggering the permission prompt
+            // If iTerm2 isn't installed, the script fails silently
+            // User can still skip this step
             await MainActor.run {
                 isRequesting = false
                 hasRequested = true

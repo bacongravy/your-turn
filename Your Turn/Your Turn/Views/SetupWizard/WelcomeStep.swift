@@ -43,7 +43,6 @@ struct WelcomeStep: View {
             .controlSize(.large)
 
             Spacer()
-                .frame(height: 40)
         }
         .padding()
     }

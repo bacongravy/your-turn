@@ -36,8 +36,8 @@ struct HooksStep: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 40)
 
-            // Disclosure for details - constrained height
-            VStack {
+            // Disclosure for details - anchored at top so it expands downward only
+            VStack(alignment: .leading) {
                 DisclosureGroup("What this does", isExpanded: $showDetails) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Creates config in ~/.claude/settings.json")
@@ -47,9 +47,10 @@ struct HooksStep: View {
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
                 }
-                .padding(.horizontal, 60)
+                Spacer(minLength: 0)
             }
-            .frame(height: 80)
+            .padding(.horizontal, 60)
+            .frame(height: 80, alignment: .top)
 
             Spacer()
 
@@ -120,9 +121,6 @@ struct HooksStep: View {
                 .disabled(!isInstalled)
             }
             .padding(.horizontal, 40)
-
-            Spacer()
-                .frame(height: 20)
         }
         .padding()
         .onAppear {

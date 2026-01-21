@@ -15,7 +15,7 @@ struct SetupWizardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Step content
+            // Step content - fixed height so dots stay in place
             Group {
                 switch currentStep {
                 case 0:
@@ -32,11 +32,10 @@ struct SetupWizardView: View {
                     EmptyView()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .frame(height: 340)
 
-            Spacer()
-
-            // Progress dots
+            // Progress dots - always at fixed position
             HStack(spacing: 8) {
                 ForEach(0..<totalSteps, id: \.self) { index in
                     Circle()
@@ -44,7 +43,7 @@ struct SetupWizardView: View {
                         .frame(width: 8, height: 8)
                 }
             }
-            .padding(.bottom, 20)
+            .frame(height: 60)
         }
         .frame(width: 500, height: 400)
         .onReceive(NotificationCenter.default.publisher(for: .openSetup)) { _ in

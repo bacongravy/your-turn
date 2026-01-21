@@ -63,7 +63,7 @@ struct NotificationsStep: View {
 
                     Text("You can continue without notifications, but you won't receive alerts.")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
             } else {
@@ -101,9 +101,6 @@ struct NotificationsStep: View {
                 .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal, 40)
-
-            Spacer()
-                .frame(height: 20)
         }
         .padding()
         .onAppear {
