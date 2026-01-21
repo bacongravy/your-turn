@@ -28,17 +28,30 @@ final class WarpController: TerminalActivating {
     /// Activate Warp.
     /// - Parameter sessionId: Ignored. Warp does not support session-level focus.
     func activate(sessionId: String?) {
-        guard let warpApp = findRunningWarp() else {
+        guard isRunning() else {
             logger.debug("Warp not running, skipping activation")
             return
         }
 
-        warpApp.activate(options: [.activateAllWindows])
+        let script = """
+            tell application "Warp"
+                activate
+            end tell
+            """
+        executeScript(script)
     }
 
-    private func findRunningWarp() -> NSRunningApplication? {
-        NSWorkspace.shared.runningApplications.first { app in
-            bundleIds.contains(where: { $0 == app.bundleIdentifier })
+    private func executeScript(_ source: String) {
+        guard let script = NSAppleScript(source: source) else {
+            logger.error("Failed to create AppleScript")
+            return
+        }
+
+        var errorInfo: NSDictionary?
+        _ = script.executeAndReturnError(&errorInfo)
+
+        if let error = errorInfo {
+            logger.debug("AppleScript error: \(error)")
         }
     }
 }
