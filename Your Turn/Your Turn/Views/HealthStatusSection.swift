@@ -97,6 +97,8 @@ private struct HealthCheckRow: View {
     let state: CheckState
     var actionLabel: String = "Fix"
     let onAction: (() async -> Void)?
+    var okActionLabel: String? = nil
+    var onOkAction: (() async -> Void)? = nil
 
     @State private var isActing = false
 
@@ -118,12 +120,12 @@ private struct HealthCheckRow: View {
 
             Spacer()
 
-            // Action button - show if failed/unknown and has action
-            if (state == .failed || state == .unknown), let onAction = onAction {
-                Button(actionLabel) {
+            // Action button - show for failed/unknown with onAction, or ok with onOkAction
+            if let (label, action) = currentAction {
+                Button(label) {
                     Task {
                         isActing = true
-                        await onAction()
+                        await action()
                         isActing = false
                     }
                 }
@@ -132,6 +134,16 @@ private struct HealthCheckRow: View {
                 .disabled(isActing)
             }
         }
+    }
+
+    /// Returns the appropriate button label and action based on current state
+    private var currentAction: (String, () async -> Void)? {
+        if (state == .failed || state == .unknown), let onAction = onAction {
+            return (actionLabel, onAction)
+        } else if state == .ok, let okLabel = okActionLabel, let okAction = onOkAction {
+            return (okLabel, okAction)
+        }
+        return nil
     }
 
     @ViewBuilder
