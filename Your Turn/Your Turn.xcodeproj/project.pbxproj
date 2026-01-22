@@ -6,13 +6,83 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A4CF3BBA2F21F95600A3FF03 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Sounds;
+			dstSubfolderSpec = 7;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A4C8A73A2F1F5AEA007C103D /* Your Turn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Your Turn.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A4CF3BBB2F21F96600A3FF03 /* Exceptions for "Your Turn" folder in "Your Turn" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Sounds/Bip.aiff,
+				Resources/Sounds/Boing.aiff,
+				Resources/Sounds/ChuToy.aiff,
+				"Resources/Sounds/Clink-Klank.aiff",
+				Resources/Sounds/Droplet.aiff,
+				Resources/Sounds/Indigo.aiff,
+				Resources/Sounds/Laugh.aiff,
+				Resources/Sounds/Logjam.aiff,
+				Resources/Sounds/Monkey.aiff,
+				Resources/Sounds/Moof.aiff,
+				Resources/Sounds/Pong.aiff,
+				Resources/Sounds/Quack.aiff,
+				"Resources/Sounds/Single Click.aiff",
+				Resources/Sounds/Temple.aiff,
+				"Resources/Sounds/Uh oh.aiff",
+				Resources/Sounds/Voltage.aiff,
+				Resources/Sounds/Whit.aiff,
+				"Resources/Sounds/Wild Eep.aiff",
+			);
+			target = A4C8A7392F1F5AEA007C103D /* Your Turn */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		A4CF3BBC2F21F96600A3FF03 /* Exceptions for "Your Turn" folder in "Copy Files" phase from "Your Turn" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = A4CF3BBA2F21F95600A3FF03 /* CopyFiles */;
+			membershipExceptions = (
+				Resources/Sounds/Bip.aiff,
+				Resources/Sounds/Boing.aiff,
+				Resources/Sounds/ChuToy.aiff,
+				"Resources/Sounds/Clink-Klank.aiff",
+				Resources/Sounds/Droplet.aiff,
+				Resources/Sounds/Indigo.aiff,
+				Resources/Sounds/Laugh.aiff,
+				Resources/Sounds/Logjam.aiff,
+				Resources/Sounds/Monkey.aiff,
+				Resources/Sounds/Moof.aiff,
+				Resources/Sounds/Pong.aiff,
+				Resources/Sounds/Quack.aiff,
+				"Resources/Sounds/Single Click.aiff",
+				Resources/Sounds/Temple.aiff,
+				"Resources/Sounds/Uh oh.aiff",
+				Resources/Sounds/Voltage.aiff,
+				Resources/Sounds/Whit.aiff,
+				"Resources/Sounds/Wild Eep.aiff",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A4C8A73C2F1F5AEA007C103D /* Your Turn */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A4CF3BBB2F21F96600A3FF03 /* Exceptions for "Your Turn" folder in "Your Turn" target */,
+				A4CF3BBC2F21F96600A3FF03 /* Exceptions for "Your Turn" folder in "Copy Files" phase from "Your Turn" target */,
+			);
 			path = "Your Turn";
 			sourceTree = "<group>";
 		};
@@ -55,6 +125,7 @@
 				A4C8A7362F1F5AEA007C103D /* Sources */,
 				A4C8A7372F1F5AEA007C103D /* Frameworks */,
 				A4C8A7382F1F5AEA007C103D /* Resources */,
+				A4CF3BBA2F21F95600A3FF03 /* CopyFiles */,
 			);
 			buildRules = (
 			);
