@@ -14,8 +14,13 @@ struct GeneralSection: View {
     @AppStorage("notify.sound") private var selectedSound: String = ""
 
     /// System sounds loaded synchronously to ensure Picker tags are available on first render
-    private var sounds: [SystemSound] {
+    private var systemSounds: [SystemSound] {
         SystemSound.getSystemSounds()
+    }
+
+    /// Classic sounds bundled with the app from Resources/Sounds
+    private var classicSounds: [SystemSound] {
+        SystemSound.getClassicSounds()
     }
 
     var body: some View {
@@ -30,8 +35,16 @@ struct GeneralSection: View {
                 Picker("Notification sound", selection: $selectedSound) {
                     Text(SystemSound.none.name).tag(SystemSound.none.filename)
                     Divider()
-                    ForEach(sounds) { sound in
-                        Text(sound.name).tag(sound.filename)
+                    Section(header: Text("System Sounds")) {
+                        ForEach(systemSounds) { sound in
+                            Text(sound.name).tag(sound.filename)
+                        }
+                    }
+                    Divider()
+                    Section(header: Text("Classic Sounds")) {
+                        ForEach(classicSounds) { sound in
+                            Text(sound.name).tag(sound.filename)
+                        }
                     }
                 }
                 .onChange(of: selectedSound) { _, newValue in
@@ -65,15 +78,34 @@ struct GeneralSection: View {
     private func initializeSelectedSound() {
         if selectedSound.isEmpty {
             selectedSound = SystemSound.defaultSound()?.filename ?? ""
-        } else if !sounds.contains(where: { $0.filename == selectedSound }) {
-            selectedSound = SystemSound.defaultSound()?.filename ?? ""
+        } else {
+            let allSounds = systemSounds + classicSounds
+            if !allSounds.contains(where: { $0.filename == selectedSound }) {
+                selectedSound = SystemSound.defaultSound()?.filename ?? ""
+            }
         }
     }
 
     private func playSound(_ filename: String) {
         guard !filename.isEmpty else { return }
-        let soundPath = "/System/Library/Sounds/\(filename)"
-        if let sound = NSSound(contentsOf: URL(fileURLWithPath: soundPath), byReference: true) {
+
+        // Check if this is a classic sound (bundled with app)
+        let isClassicSound = classicSounds.contains { $0.filename == filename }
+
+        let soundURL: URL?
+        if isClassicSound {
+            // Get sound from app bundle's Sounds subdirectory
+            soundURL = Bundle.main.url(
+                forResource: filename.replacingOccurrences(of: ".aiff", with: ""),
+                withExtension: "aiff",
+                subdirectory: "Sounds"
+            )
+        } else {
+            // Get sound from system library
+            soundURL = URL(fileURLWithPath: "/System/Library/Sounds/\(filename)")
+        }
+
+        if let url = soundURL, let sound = NSSound(contentsOf: url, byReference: true) {
             sound.play()
         }
     }
