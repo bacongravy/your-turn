@@ -13,6 +13,7 @@ DerivedData/
 *.xcuserstate
 *.xcscmblueprint
 *.xccheckout
+xcuserdata
 
 # Swift Package Manager
 .build/
