@@ -32,9 +32,20 @@ class NotificationService: ObservableObject {
     // MARK: - Event Handling
 
     private func handleEvent(_ event: HookEvent) {
+        let defaults = UserDefaults.standard
+
+        // Check if notifications are globally enabled (default: true)
+        let notificationsEnabled = defaults.object(forKey: "notify.enabled") != nil
+            ? defaults.bool(forKey: "notify.enabled")
+            : true
+
+        guard notificationsEnabled else {
+            logger.debug("Notification suppressed: notifications globally disabled")
+            return
+        }
+
         // Check if notification is enabled for this event type
         let key = eventTypeKey(for: event)
-        let defaults = UserDefaults.standard
 
         // Default values match EventsSection: permission/inputNeeded enabled, taskComplete/error disabled
         let defaultValue: Bool
@@ -100,12 +111,6 @@ class NotificationService: ObservableObject {
         content.body = bodyMessage(for: event)
         content.interruptionLevel = .active
 
-        // Sound from settings
-        let soundName = UserDefaults.standard.string(forKey: "notify.sound") ?? "Sosumi"
-        if !soundName.isEmpty && soundName.lowercased() != "none" {
-            content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
-        }
-
         // Store session info for iTerm focusing
         content.userInfo = [
             "sessionId": event.sessionId,
@@ -121,6 +126,9 @@ class NotificationService: ObservableObject {
         do {
             try await UNUserNotificationCenter.current().add(request)
             logger.info("Posted notification for session \(event.sessionId): \(content.body)")
+
+            // Play sound via app (with repeat support)
+            SoundPlayer.shared.playNotificationSound()
         } catch {
             logger.error("Failed to post notification: \(error.localizedDescription)")
         }

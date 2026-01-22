@@ -14,6 +14,7 @@ struct SettingsView: View {
         Form {
             HealthStatusSection(socketServer: socketServer)
             GeneralSection()
+            NotificationSection()
             EventsSection()
             AboutSection()
         }
