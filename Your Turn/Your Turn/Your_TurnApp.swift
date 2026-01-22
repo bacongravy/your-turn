@@ -89,7 +89,7 @@ struct Your_TurnApp: App {
 
     var body: some Scene {
         // Menu bar only - windows are created programmatically by AppDelegate
-        MenuBarExtra("Your Turn", systemImage: "bubble.left") {
+        MenuBarExtra("Your Turn", image: "MenuBarIcon") {
             Group {
                 if setupComplete {
                     MenuBarContentView(socketServer: socketServer)
