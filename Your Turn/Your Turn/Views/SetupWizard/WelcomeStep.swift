@@ -16,9 +16,11 @@ struct WelcomeStep: View {
             Spacer()
 
             // App icon
-            Image(systemName: "bubble.left")
-                .font(.system(size: 64))
-                .foregroundStyle(.tint)
+            if let appIcon = NSImage(named: NSImage.applicationIconName) {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .frame(width: 64, height: 64)
+            }
 
             // Title
             Text("Welcome to Your Turn")
