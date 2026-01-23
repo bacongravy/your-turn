@@ -77,22 +77,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             let contentView = SettingsView(socketServer: SocketServer.shared)
 
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 450, height: 500),
+                contentRect: NSRect(x: 0, y: 0, width: 450, height: 800),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
             )
             window.title = "Your Turn Settings"
             window.contentView = NSHostingView(rootView: contentView)
-            window.center()
             window.isReleasedWhenClosed = false
             window.delegate = self
             settingsWindow = window
+
+            // Center after layout pass to use final height from SwiftUI's fixedSize
+            DispatchQueue.main.async {
+                window.center()
+                window.makeKeyAndOrderFront(nil)
+            }
+        } else {
+            // Window already exists, just show it
+            settingsWindow?.makeKeyAndOrderFront(nil)
         }
 
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        settingsWindow?.makeKeyAndOrderFront(nil)
     }
 
     // MARK: - NSWindowDelegate

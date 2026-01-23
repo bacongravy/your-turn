@@ -19,7 +19,7 @@ struct SettingsView: View {
             AboutSection()
         }
         .formStyle(.grouped)
-        .frame(width: 400)
+        .frame(width: 450)
         .fixedSize(horizontal: false, vertical: true)
     }
 }
