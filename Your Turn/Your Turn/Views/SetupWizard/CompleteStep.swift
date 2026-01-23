@@ -32,6 +32,13 @@ struct CompleteStep: View {
                 // Hooks always succeed (can't continue without them)
                 SummaryRow(enabled: true, enabledText: "Claude Code hooks installed", disabledText: "")
 
+                // Notifications
+                SummaryRow(
+                    enabled: status.notificationsEnabled,
+                    enabledText: "Notifications enabled",
+                    disabledText: "Notifications not enabled"
+                )
+
                 // iTerm row only if iTerm is installed
                 if isITermInstalled {
                     SummaryRow(
@@ -41,13 +48,6 @@ struct CompleteStep: View {
                     )
                 }
 
-                // Notifications
-                SummaryRow(
-                    enabled: status.notificationsEnabled,
-                    enabledText: "Notifications enabled",
-                    disabledText: "Notifications not enabled"
-                )
-
                 // Launch at login
                 SummaryRow(
                     enabled: status.launchAtLoginEnabled,
@@ -56,12 +56,6 @@ struct CompleteStep: View {
                 )
             }
             .padding(.horizontal, 40)
-
-            Text("Your Turn will now notify you when Claude needs your attention.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
 
             Spacer()
 
