@@ -30,22 +30,35 @@ Your Turn/
 │   ├── SoundPlayer.swift       # App-controlled sound playback with repeat
 │   ├── HookInstaller.swift     # Installs hooks into ~/.claude/settings.json
 │   ├── HealthCheckService.swift    # Integration health monitoring
-│   ├── ITermController.swift   # iTerm2 AppleScript control
-│   ├── TerminalController.swift    # Terminal.app AppleScript control
+│   ├── ITermController.swift   # iTerm2 AppleScript control (session switching)
+│   ├── ITerm2.swift            # iTerm2 shell integration detection
+│   ├── TerminalController.swift    # Protocol for terminal controllers
+│   ├── TerminalAppController.swift # Terminal.app AppleScript control
 │   └── WarpController.swift    # Warp terminal control (basic)
 ├── Models/
 │   ├── HookEvent.swift         # JSON event model from Claude Code
 │   ├── SystemSound.swift       # Sound picker data model
 │   └── HealthStatus.swift      # Integration health states
 ├── Views/
-│   ├── SettingsView.swift      # Main settings window
-│   ├── GeneralSection.swift    # Launch at login, sound preferences
+│   ├── SettingsView.swift      # Main settings window (tab container)
+│   ├── GeneralSection.swift    # Launch at login settings
+│   ├── NotificationSection.swift   # Sound and notification preferences
 │   ├── EventsSection.swift     # Per-event notification toggles
 │   ├── HealthStatusSection.swift   # Integration health display
-│   └── SetupWizard/            # First-launch setup flow
+│   ├── AboutSection.swift      # App version and about info
+│   ├── ToggleRow.swift         # Reusable toggle row component
+│   └── SetupWizard/
+│       ├── SetupWizardView.swift   # Wizard container and navigation
+│       ├── WizardStepLayout.swift  # Common step layout component
+│       ├── WelcomeStep.swift       # Welcome/intro step
+│       ├── HooksStep.swift         # Hook installation step
+│       ├── NotificationsStep.swift # Notification permission step
+│       ├── ITermIntegrationStep.swift  # iTerm2 shell integration step
+│       ├── LaunchAtLoginStep.swift # Login item setup step
+│       └── CompleteStep.swift      # Setup complete summary
 └── Resources/
     ├── your-turn-notify.sh     # Hook script (deployed to ~/.claude/hooks/)
-    └── Sounds/                 # Classic Mac sounds (bundled)
+    └── Sounds/                 # Classic Mac sounds (18 bundled .aiff files)
 ```
 
 ### Key Files
@@ -59,6 +72,8 @@ Your Turn/
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `setupComplete` | Bool | false | First-launch wizard completed |
+| `notify.enabled` | Bool | true | Master toggle for notifications |
+| `notify.soundEnabled` | Bool | true | Enable/disable sound playback |
 | `notify.sound` | String | "Sosumi.aiff" | Notification sound filename |
 | `notify.soundRepeatCount` | Int | 1 | Times to play sound (1-5) |
 | `notify.permission` | Bool | true | Notify on permission requests |
@@ -105,11 +120,12 @@ SourceKit (Swift language server) often reports false errors when editing files 
 2. Always verify with actual `xcodebuild`
 3. If build succeeds, SourceKit errors are false positives
 
-### Testing Integration
+### Scripts
 
-Test scripts in `scripts/`:
+Utility scripts in `scripts/`:
 - `test-socket.sh` - Send test events to the Unix socket
 - `reset-for-testing.sh` - Reset app state for fresh testing
+- `generate-menu-icon.swift` - Generate menu bar icon assets
 
 ### Terminal Support
 
