@@ -23,12 +23,14 @@ struct SetupPendingMenu: View {
         Button("Complete Setup...") {
             NotificationCenter.default.post(name: .openSetup, object: nil)
         }
+        .keyboardShortcut(",", modifiers: .command)
 
         Divider()
 
         Button("Quit") {
             NSApplication.shared.terminate(nil)
         }
+        .keyboardShortcut("Q", modifiers: .command)
     }
 }
 
@@ -45,6 +47,7 @@ struct MenuBarContentView: View {
         Button("Quit") {
             NSApplication.shared.terminate(nil)
         }
+        .keyboardShortcut("Q", modifiers: .command)
     }
 }
 
