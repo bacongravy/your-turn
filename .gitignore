@@ -21,4 +21,7 @@ xcuserdata
 Package.resolved
 
 # Claude Code
-.claude/settings.local.json
+.claude/
+
+# VS Code
+.vscode/
