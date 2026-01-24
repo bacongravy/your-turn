@@ -10,9 +10,6 @@ import Foundation
 /// Protocol for terminal controllers that can activate their terminal.
 /// Implementations handle terminal-specific activation logic (AppleScript, NSWorkspace, etc.).
 protocol TerminalActivating {
-    /// Check if this terminal application is currently running.
-    func isRunning() -> Bool
-
     /// Activate the terminal, optionally focusing a specific session.
     /// - Parameter sessionId: Optional session identifier (terminal-specific format).
     ///   Implementations may ignore this if they don't support session-level focus.
