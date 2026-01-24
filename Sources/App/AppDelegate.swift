@@ -68,8 +68,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         }
 
         NSApp.setActivationPolicy(.regular)
-        setupWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        setupWindow?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func openSettingsWindow() {
@@ -77,12 +77,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             let contentView = SettingsView()
 
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 450, height: 800),
+                contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
             )
-            window.title = "Your Turn Settings"
+            window.title = "Your Turn"
             window.contentView = NSHostingView(rootView: contentView)
             window.isReleasedWhenClosed = false
             window.delegate = self
@@ -91,15 +91,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             // Center after layout pass to use final height from SwiftUI's fixedSize
             DispatchQueue.main.async {
                 window.center()
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
                 window.makeKeyAndOrderFront(nil)
             }
         } else {
             // Window already exists, just show it
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
             settingsWindow?.makeKeyAndOrderFront(nil)
         }
-
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     // MARK: - NSWindowDelegate
