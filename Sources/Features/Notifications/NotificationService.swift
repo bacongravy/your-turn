@@ -119,7 +119,8 @@ class NotificationService: ObservableObject {
 
     private func postNotification(for event: HookEvent) async {
         let content = UNMutableNotificationContent()
-        let projectName = URL(fileURLWithPath: event.cwd).lastPathComponent
+        let projectPath = event.projectDir ?? event.cwd
+        let projectName = URL(fileURLWithPath: projectPath).lastPathComponent
         content.title = "It's your turn!"
         content.subtitle = "Project: \(projectName)"
         content.body = bodyMessage(for: event)

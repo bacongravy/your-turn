@@ -34,6 +34,7 @@ struct HookEvent: Codable {
     let termSessionId: String?
     let termProgram: String?
     let tty: String?
+    let projectDir: String?
 
     enum CodingKeys: String, CodingKey {
         case sessionId = "session_id"
@@ -49,6 +50,7 @@ struct HookEvent: Codable {
         case termSessionId = "term_session_id"
         case termProgram = "term_program"
         case tty
+        case projectDir = "project_dir"
     }
 }
 
