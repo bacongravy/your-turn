@@ -10,13 +10,6 @@ import AppKit
 import Foundation
 import os.log
 
-/// Result of automation permission request
-enum AutomationResult: Equatable {
-    case success
-    case denied
-    case error(String)
-}
-
 /// Centralized iTerm2 integration logic.
 /// All iTerm-related functionality exposed as static functions.
 enum ITerm2 {
@@ -26,7 +19,6 @@ enum ITerm2 {
 
     static let bundleIdentifier = "com.googlecode.iterm2"
     static let appName = "iTerm2"
-    static let automationDeniedErrorCode = -1743
 
     // MARK: - App State
 
@@ -72,7 +64,7 @@ enum ITerm2 {
             end tell
             """
 
-        let (result, error) = executeScript(script)
+        let (result, error) = AppleScriptRunner.executeScript(script)
 
         if error != nil {
             // iTerm not running, no window, or other error - fail gracefully
@@ -118,7 +110,7 @@ enum ITerm2 {
                 return false
             end tell
             """
-        executeScript(script)
+        AppleScriptRunner.executeScript(script)
     }
 
     // MARK: - Smart Suppression
@@ -161,12 +153,7 @@ enum ITerm2 {
             return
         }
 
-        let script = """
-            tell application "iTerm2"
-                activate
-            end tell
-            """
-        executeScript(script)
+        AppleScriptRunner.activateApp("iTerm2")
     }
 
     /// Activate iTerm2, optionally focusing a specific session.
@@ -186,50 +173,6 @@ enum ITerm2 {
     /// Executes on a background queue to prevent blocking the main thread.
     /// - Parameter completion: Called on the main queue with the result
     static func requestAutomationPermission(completion: @escaping (AutomationResult) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let (result, error) = executeScript("tell application \"iTerm\" to count windows")
-
-            let automationResult: AutomationResult
-            if let error = error {
-                let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
-                let errorMessage = error[NSAppleScript.errorMessage] as? String ?? "Unknown error"
-
-                if errorNumber == automationDeniedErrorCode {
-                    automationResult = .denied
-                } else {
-                    automationResult = .error(errorMessage)
-                }
-            } else if result != nil {
-                automationResult = .success
-            } else {
-                automationResult = .error("AppleScript execution failed")
-            }
-
-            DispatchQueue.main.async {
-                completion(automationResult)
-            }
-        }
-    }
-
-    // MARK: - AppleScript Execution (Private)
-
-    /// Execute an AppleScript and log any errors
-    /// - Parameter source: The AppleScript source code
-    /// - Returns: A tuple containing the result descriptor and error info (both optional)
-    @discardableResult
-    private static func executeScript(_ source: String) -> (result: NSAppleEventDescriptor?, error: NSDictionary?) {
-        guard let script = NSAppleScript(source: source) else {
-            logger.error("Failed to create AppleScript")
-            return (nil, nil)
-        }
-
-        var errorInfo: NSDictionary?
-        let result = script.executeAndReturnError(&errorInfo)
-
-        if let error = errorInfo {
-            logger.debug("AppleScript error: \(error)")
-        }
-
-        return (result, errorInfo)
+        AppleScriptRunner.checkAutomationPermission(for: "iTerm", completion: completion)
     }
 }
