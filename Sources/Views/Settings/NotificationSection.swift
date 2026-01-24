@@ -39,7 +39,7 @@ struct NotificationSection: View {
                 isOn: $soundEnabled
             )
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Picker("Sound", selection: $selectedSound) {
                     Section(header: Text("System Sounds")) {
                         ForEach(systemSounds) { sound in
@@ -64,7 +64,7 @@ struct NotificationSection: View {
                     .foregroundStyle(.secondary)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Picker("Repeat count", selection: $soundRepeatCount) {
                     ForEach(1...5, id: \.self) { count in
                         Text("\(count)").tag(count)
@@ -80,8 +80,6 @@ struct NotificationSection: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
-        } header: {
-            Text("Notifications")
         }
     }
 

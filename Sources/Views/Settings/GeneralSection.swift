@@ -18,8 +18,6 @@ struct GeneralSection: View {
                 subtitle: "Start automatically when you log in",
                 isOn: $launchAtLogin
             )
-        } header: {
-            Text("General")
         }
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled

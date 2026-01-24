@@ -10,6 +10,7 @@ import SwiftUI
 enum SettingTab: Int, Hashable {
     case general
     case notifications
+    case events
 }
 
 struct SettingsView: View {
@@ -17,14 +18,40 @@ struct SettingsView: View {
     @State private var selectedTab = SettingTab.general
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab("General", systemImage: "gear", value: SettingTab.general) {
-                GeneralTabContent(socketServer: socketServer)
+        Group {
+            Picker("", selection: $selectedTab) {
+                Text("General")
+                    .tag(SettingTab.general)
+                Text("Notifications")
+                    .tag(SettingTab.notifications)
+                Text("Events")
+                    .tag(SettingTab.events)
             }
-            Tab("Notifications", systemImage: "bell", value: SettingTab.notifications) {
-                NotificationsTabContent()
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal)
+            .padding(.top, 12)
+
+            Group {
+                switch selectedTab {
+                case .general:
+                    Form {
+                        HealthStatusSection(socketServer: socketServer)
+                        GeneralSection()
+                    }
+                case .notifications:
+                    Form {
+                        NotificationSection()
+                    }
+                case .events:
+                    Form {
+                        EventsSection()
+                    }
+                }
             }
+            .padding(.top, -8)
         }
+        .formStyle(.grouped)
         .frame(width: 450)
         .fixedSize(horizontal: false, vertical: true)
         .background {
@@ -34,6 +61,8 @@ struct SettingsView: View {
                     .keyboardShortcut("1", modifiers: .command)
                 Button("") { selectedTab = .notifications }
                     .keyboardShortcut("2", modifiers: .command)
+                Button("") { selectedTab = .events }
+                    .keyboardShortcut("3", modifiers: .command)
             }
             .opacity(0)
             .allowsHitTesting(false)

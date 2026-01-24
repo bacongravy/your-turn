@@ -35,8 +35,6 @@ struct EventsSection: View {
                 subtitle: "When something goes wrong",
                 isOn: $notifyError
             )
-        } header: {
-            Text("Events")
         }
     }
 }

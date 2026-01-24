@@ -21,12 +21,12 @@ struct HealthStatusSection: View {
 
     var body: some View {
         Section {
-            HealthCheckRow(
-                title: "Socket Server Running",
-                subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
-                state: healthService.status.socket
-            )
-
+//            HealthCheckRow(
+//                title: "Socket Server Running",
+//                subtitle: healthService.status.socket == .failed ? "Restart app to fix" : nil,
+//                state: healthService.status.socket
+//            )
+//
             HealthCheckRow(
                 title: "Hooks Installed",
                 state: healthService.status.hooks,
@@ -48,8 +48,6 @@ struct HealthStatusSection: View {
                 )
             }
 
-        } header: {
-            Text("Integration Status")
         }
         .onAppear {
             healthService.socketServer = socketServer
