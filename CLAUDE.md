@@ -22,43 +22,53 @@ Claude Code Hook → Shell Script → Unix Socket → Your Turn App → macOS No
 
 ```
 Your Turn/
-├── Your_TurnApp.swift      # App entry point, menu bar setup
-├── Services/
-│   ├── AppDelegate.swift       # Window management, notification delegate
-│   ├── SocketServer.swift      # Unix socket listener, JSON parsing
-│   ├── NotificationService.swift   # Event → notification logic
-│   ├── SoundPlayer.swift       # App-controlled sound playback with repeat
-│   ├── HookInstaller.swift     # Installs hooks into ~/.claude/settings.json
-│   ├── HealthCheckService.swift    # Integration health monitoring
-│   ├── ITermController.swift   # iTerm2 AppleScript control (session switching)
-│   ├── ITerm2.swift            # iTerm2 shell integration detection
-│   ├── TerminalController.swift    # Protocol for terminal controllers
-│   ├── TerminalAppController.swift # Terminal.app AppleScript control
-│   └── WarpController.swift    # Warp terminal control (basic)
-├── Models/
-│   ├── HookEvent.swift         # JSON event model from Claude Code
-│   ├── SystemSound.swift       # Sound picker data model
-│   └── HealthStatus.swift      # Integration health states
-├── Views/
-│   ├── SettingsView.swift      # Main settings window (tab container)
-│   ├── GeneralSection.swift    # Launch at login settings
-│   ├── NotificationSection.swift   # Sound and notification preferences
-│   ├── EventsSection.swift     # Per-event notification toggles
-│   ├── HealthStatusSection.swift   # Integration health display
-│   ├── AboutSection.swift      # App version and about info
-│   ├── ToggleRow.swift         # Reusable toggle row component
-│   └── SetupWizard/
-│       ├── SetupWizardView.swift   # Wizard container and navigation
-│       ├── WizardStepLayout.swift  # Common step layout component
-│       ├── WelcomeStep.swift       # Welcome/intro step
-│       ├── HooksStep.swift         # Hook installation step
-│       ├── NotificationsStep.swift # Notification permission step
-│       ├── ITermIntegrationStep.swift  # iTerm2 shell integration step
-│       ├── LaunchAtLoginStep.swift # Login item setup step
-│       └── CompleteStep.swift      # Setup complete summary
+├── Your_TurnApp.swift          # App entry point, menu bar setup
+├── App/                        # App lifecycle & infrastructure
+│   ├── AppDelegate.swift           # Window management, notification delegate
+│   └── SocketServer.swift          # Unix socket listener, JSON parsing
+├── Hooks/                      # AI agent hook integrations
+│   └── HookInstaller.swift         # Claude Code hook installation
+├── Features/                   # Feature modules
+│   ├── Notifications/
+│   │   ├── NotificationService.swift   # Event → notification logic
+│   │   └── SoundPlayer.swift           # App-controlled sound playback
+│   └── HealthCheck/
+│       ├── HealthCheckService.swift    # Integration health monitoring
+│       └── HealthStatus.swift          # Health state model
+├── Terminals/                  # Terminal integrations
+│   ├── TerminalController.swift    # Protocol + registry
+│   ├── ITerm/
+│   │   ├── ITerm2.swift                # Shell integration detection
+│   │   └── ITermController.swift       # AppleScript control
+│   ├── TerminalApp/
+│   │   └── TerminalAppController.swift # Terminal.app control
+│   └── Warp/
+│       └── WarpController.swift        # Warp control (basic)
+├── Models/                     # Data models
+│   ├── HookEvent.swift             # JSON event model from Claude Code
+│   └── SystemSound.swift           # Sound picker data model
+├── Views/                      # UI layer
+│   ├── Settings/
+│   │   ├── SettingsView.swift          # Main settings window (tabs)
+│   │   ├── GeneralSection.swift        # Launch at login settings
+│   │   ├── NotificationSection.swift   # Sound preferences
+│   │   ├── EventsSection.swift         # Per-event toggles
+│   │   ├── HealthStatusSection.swift   # Health display
+│   │   └── AboutSection.swift          # App version info
+│   ├── SetupWizard/
+│   │   ├── SetupWizardView.swift       # Wizard container
+│   │   ├── WizardStepLayout.swift      # Common step layout
+│   │   ├── WelcomeStep.swift           # Welcome/intro step
+│   │   ├── HooksStep.swift             # Hook installation step
+│   │   ├── NotificationsStep.swift     # Notification permission step
+│   │   ├── ITermIntegrationStep.swift  # iTerm2 integration step
+│   │   ├── LaunchAtLoginStep.swift     # Login item setup step
+│   │   └── CompleteStep.swift          # Setup complete summary
+│   └── Components/
+│       └── ToggleRow.swift             # Reusable toggle component
 └── Resources/
-    ├── your-turn-notify.sh     # Hook script (deployed to ~/.claude/hooks/)
-    └── Sounds/                 # Classic Mac sounds (18 bundled .aiff files)
+    ├── your-turn-notify.sh         # Hook script (deployed to ~/.claude/hooks/)
+    └── Sounds/                     # Classic Mac sounds (18 bundled .aiff files)
 ```
 
 ### Key Files
