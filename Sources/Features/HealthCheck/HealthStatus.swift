@@ -20,5 +20,6 @@ struct HealthStatus {
     var hooks: CheckState = .unknown
     var notifications: CheckState = .unknown
     var iTermIntegration: CheckState = .unknown
+    var terminalAppIntegration: CheckState = .unknown
     var socket: CheckState = .unknown
 }

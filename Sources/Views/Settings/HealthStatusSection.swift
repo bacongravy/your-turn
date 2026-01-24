@@ -29,17 +29,26 @@ struct HealthStatusSection: View {
 //            )
 //
             HealthCheckRow(
-                title: "Hooks Installed",
+                title: "Claude Code Hooks",
                 state: healthService.status.hooks,
                 onRepairAction: healthService.repairHooks
             )
 
             HealthCheckRow(
-                title: "Notifications Permitted",
+                title: "Notifications",
                 state: healthService.status.notifications,
                 onRepairAction: healthService.repairNotifications,
                 onAction: healthService.repairNotifications
             )
+            // Always show Terminal.app integration (built into macOS)
+            HealthCheckRow(
+                title: "macOS Terminal",
+                state: healthService.status.terminalAppIntegration,
+                onUnknownAction: healthService.checkTerminalAppIntegrationStatus,
+                onRepairAction: healthService.repairTerminalAppIntegration
+            )
+
+            // Show iTerm integration if installed
             if isITermInstalled {
                 HealthCheckRow(
                     title: "iTerm Integration",

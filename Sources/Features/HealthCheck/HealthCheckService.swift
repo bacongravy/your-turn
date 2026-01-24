@@ -37,8 +37,11 @@ class HealthCheckService: ObservableObject {
         if status.iTermIntegration == .failed {
             await checkITermIntegrationStatus()
         }
+        if status.terminalAppIntegration == .failed {
+            await checkTerminalAppIntegrationStatus()
+        }
 
-        logger.info("Health check complete: socket=\(String(describing: self.status.socket)), hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), automation=\(String(describing: self.status.iTermIntegration))")
+        logger.info("Health check complete: socket=\(String(describing: self.status.socket)), hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), iTerm=\(String(describing: self.status.iTermIntegration)), terminal=\(String(describing: self.status.terminalAppIntegration))")
     }
 
     private func checkSocket() -> CheckState {
@@ -82,6 +85,29 @@ class HealthCheckService: ObservableObject {
             }
         }
     }
+
+    /// Check Terminal.app automation permission by triggering AppleScript
+    /// WARNING: This will show a permission dialog if not yet granted!
+    /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
+    func checkTerminalAppIntegrationStatus() async {
+        logger.info("Checking Terminal.app integration status")
+        status.terminalAppIntegration = .checking
+
+        await withCheckedContinuation { continuation in
+            TerminalApp.requestAutomationPermission { result in
+                switch result {
+                case .success:
+                    self.status.terminalAppIntegration = .ok
+                case .denied, .error:
+                    self.status.terminalAppIntegration = .failed
+                }
+
+                self.logger.info("Terminal.app integration check complete: \(String(describing: self.status.terminalAppIntegration))")
+                continuation.resume()
+            }
+        }
+    }
+
     // MARK: - Repair Actions
 
     /// Repair hooks by installing them
@@ -121,6 +147,21 @@ class HealthCheckService: ObservableObject {
         }
         else {
             self.logger.info("iTerm integration already set up, skipping repair")
+        }
+    }
+
+    func repairTerminalAppIntegration() async {
+        logger.info("Attempting to repair Terminal.app integration")
+        await checkTerminalAppIntegrationStatus()
+
+        if self.status.terminalAppIntegration == .failed {
+            self.logger.info("Opening privacy automation settings (manual repair required)")
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+        else {
+            self.logger.info("Terminal.app integration already set up, skipping repair")
         }
     }
 
