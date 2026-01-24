@@ -39,6 +39,13 @@ struct CompleteStep: View {
                     disabledText: "Notifications not enabled"
                 )
 
+                // Terminal.app (always shown - built into macOS)
+                SummaryRow(
+                    enabled: status.terminalAppConfigured,
+                    enabledText: "macOS Terminal integration configured",
+                    disabledText: "macOS Terminal integration not configured"
+                )
+
                 // iTerm row only if iTerm is installed
                 if isITermInstalled {
                     SummaryRow(
@@ -94,7 +101,7 @@ private struct SummaryRow: View {
     CompleteStep(
         onFinish: {},
         isITermInstalled: true,
-        status: WizardStatus(notificationsEnabled: true, iTermConfigured: true, launchAtLoginEnabled: true)
+        status: WizardStatus(notificationsEnabled: true, iTermConfigured: true, terminalAppConfigured: true, launchAtLoginEnabled: true)
     )
     .frame(width: 500, height: 340)
 }
@@ -103,7 +110,7 @@ private struct SummaryRow: View {
     CompleteStep(
         onFinish: {},
         isITermInstalled: true,
-        status: WizardStatus(notificationsEnabled: false, iTermConfigured: false, launchAtLoginEnabled: true)
+        status: WizardStatus(notificationsEnabled: false, iTermConfigured: false, terminalAppConfigured: false, launchAtLoginEnabled: true)
     )
     .frame(width: 500, height: 340)
 }
@@ -112,7 +119,7 @@ private struct SummaryRow: View {
     CompleteStep(
         onFinish: {},
         isITermInstalled: false,
-        status: WizardStatus(notificationsEnabled: true, iTermConfigured: false, launchAtLoginEnabled: false)
+        status: WizardStatus(notificationsEnabled: true, iTermConfigured: false, terminalAppConfigured: true, launchAtLoginEnabled: false)
     )
     .frame(width: 500, height: 340)
 }

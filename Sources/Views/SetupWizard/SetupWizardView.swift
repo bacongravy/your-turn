@@ -7,24 +7,46 @@
 
 import SwiftUI
 
+/// Identifies each wizard step
+enum WizardStep {
+    case welcome
+    case hooks
+    case notifications
+    case terminalApp
+    case iTerm
+    case launchAtLogin
+    case complete
+}
+
 /// Tracks the completion status of each wizard step
 struct WizardStatus {
     var notificationsEnabled: Bool = false
     var iTermConfigured: Bool = false
+    var terminalAppConfigured: Bool = false
     var launchAtLoginEnabled: Bool = false
 }
 
 /// Container view for the setup wizard
-/// Step order: Welcome -> Hooks -> Notifications -> iTerm Integration (if installed) -> Launch at Login -> Complete
+/// Step order: Welcome -> Hooks -> Notifications -> Terminal.app -> iTerm (if installed) -> Launch at Login -> Complete
 struct SetupWizardView: View {
     @State private var currentStep = 0
     @State private var isITermInstalled = false
     @State private var status = WizardStatus()
     let onComplete: () -> Void
 
-    /// Number of visible steps (varies based on iTerm installation)
+    /// Build steps array dynamically - skipped steps just aren't added
+    private var steps: [WizardStep] {
+        var result: [WizardStep] = [.welcome, .hooks, .notifications, .terminalApp]
+        if isITermInstalled {
+            result.append(.iTerm)
+        }
+        result.append(contentsOf: [.launchAtLogin, .complete])
+        return result
+    }
+
+    /// Number of visible steps
     private var totalSteps: Int {
-        isITermInstalled ? 6 : 5
+        steps.count
     }
 
     var body: some View {
@@ -40,7 +62,7 @@ struct SetupWizardView: View {
             HStack(spacing: 8) {
                 ForEach(0..<totalSteps, id: \.self) { index in
                     Circle()
-                        .fill(index <= displayStepIndex ? Color.accentColor : Color.gray.opacity(0.3))
+                        .fill(index <= currentStep ? Color.accentColor : Color.gray.opacity(0.3))
                         .frame(width: 8, height: 8)
                 }
             }
@@ -60,12 +82,12 @@ struct SetupWizardView: View {
 
     @ViewBuilder
     private var stepView: some View {
-        switch currentStep {
-        case 0:
+        switch steps[currentStep] {
+        case .welcome:
             WelcomeStep(onContinue: nextStep)
-        case 1:
+        case .hooks:
             HooksStep(onContinue: nextStep, onBack: prevStep)
-        case 2:
+        case .notifications:
             NotificationsStep(
                 onContinue: { enabled in
                     status.notificationsEnabled = enabled
@@ -73,7 +95,15 @@ struct SetupWizardView: View {
                 },
                 onBack: prevStep
             )
-        case 3:
+        case .terminalApp:
+            TerminalAppIntegrationStep(
+                onContinue: { configured in
+                    status.terminalAppConfigured = configured
+                    nextStep()
+                },
+                onBack: prevStep
+            )
+        case .iTerm:
             ITermIntegrationStep(
                 onContinue: { configured in
                     status.iTermConfigured = configured
@@ -81,7 +111,7 @@ struct SetupWizardView: View {
                 },
                 onBack: prevStep
             )
-        case 4:
+        case .launchAtLogin:
             LaunchAtLoginStep(
                 onContinue: { enabled in
                     status.launchAtLoginEnabled = enabled
@@ -89,27 +119,19 @@ struct SetupWizardView: View {
                 },
                 onBack: prevStep
             )
-        case 5:
+        case .complete:
             CompleteStep(
                 onFinish: onComplete,
                 isITermInstalled: isITermInstalled,
                 status: status
             )
-        default:
-            EmptyView()
         }
     }
 
-    /// Display index for progress dots
-    private var displayStepIndex: Int {
-        (currentStep > 2 && !isITermInstalled) ? currentStep - 1 : currentStep            
-    }
-
     private func nextStep() {
-        let stepIncrement = (currentStep == 2 && !isITermInstalled) ? 2 : 1
-        if currentStep < 5 {
+        if currentStep < steps.count - 1 {
             withAnimation(.easeInOut(duration: 0.2)) {
-                currentStep += stepIncrement
+                currentStep += 1
             }
         }
     }
