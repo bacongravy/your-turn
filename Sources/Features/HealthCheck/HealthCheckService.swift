@@ -121,8 +121,13 @@ class HealthCheckService: ObservableObject {
             return
         }
 
-        let success = hookInstaller.installHooks()
-        status.hooks = success ? .ok : .failed
+        do {
+            try hookInstaller.installHooks()
+            status.hooks = .ok
+        } catch {
+            logger.error("Hook repair failed: \(error.localizedDescription)")
+            status.hooks = .failed
+        }
 
         logger.info("Hooks repair complete: \(String(describing: self.status.hooks))")
     }

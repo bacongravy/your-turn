@@ -41,8 +41,7 @@ class HookInstaller {
     }
 
     /// Install hooks into Claude Code settings.json and deploy hook script
-    /// Returns true if successful, false otherwise
-    func installHooks() -> Bool {
+    func installHooks() throws {
         logger.info("Starting hook installation")
 
         do {
@@ -53,10 +52,9 @@ class HookInstaller {
             try deployHookScript()
 
             logger.info("Hook installation complete")
-            return true
         } catch {
             logger.error("Hook installation failed: \(error.localizedDescription)")
-            return false
+            throw error
         }
     }
 
