@@ -93,27 +93,9 @@ Sources/
 
 ## Development
 
-### Build Environment Detection
+### Building
 
-When the current user is `claude`, you are in a limited environment without keychain access for code signing.
-
-**Detect limited environment:**
-```bash
-whoami  # Returns 'claude' in limited environment
-```
-
-**Build in limited environment (no signing):**
-```bash
-xcodebuild -project YourTurn.xcodeproj -scheme "Your Turn" -configuration Debug build \
-  CODE_SIGN_IDENTITY="" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO
-```
-
-**Build in full environment (with signing):**
-```bash
-xcodebuild -project YourTurn.xcodeproj -scheme "Your Turn" -configuration Debug build
-```
+Always use `./Scripts/build.sh` instead of running xcodebuild directly. The script automatically detects if code signing is available and adjusts accordingly.
 
 ### SourceKit False Positives
 
@@ -125,15 +107,28 @@ SourceKit (Swift language server) often reports false errors when editing files 
 
 **How to handle:**
 1. Do not trust SourceKit diagnostics alone
-2. Always verify with actual `xcodebuild`
+2. Always verify with `./Scripts/build.sh`
 3. If build succeeds, SourceKit errors are false positives
 
 ### Scripts
 
 Utility scripts in `Scripts/`:
-- `test-socket.sh` - Send test events to the Unix socket
-- `reset-for-testing.sh` - Reset app state for fresh testing
-- `generate-menu-icon.swift` - Generate menu bar icon assets
+
+| Script | Usage | Description |
+|--------|-------|-------------|
+| `build.sh` | `./Scripts/build.sh [command]` | **Primary build script** - always use this instead of xcodebuild directly |
+| `debug.sh` | (called by build.sh) | Launch app in lldb with auto-run |
+| `test-socket.sh` | `./Scripts/test-socket.sh` | Send test events to the Unix socket |
+| `reset-for-testing.sh` | `./Scripts/reset-for-testing.sh` | Reset app state for fresh testing |
+| `generate-menu-icon.swift` | `swift Scripts/generate-menu-icon.swift` | Generate menu bar icon assets |
+
+**build.sh commands:**
+- `./Scripts/build.sh` - Build only (default)
+- `./Scripts/build.sh run` - Build and launch app
+- `./Scripts/build.sh debug` - Build and launch with lldb
+- `./Scripts/build.sh clean` - Remove build directory
+
+The build script automatically detects if code signing is available and adjusts accordingly.
 
 ### Terminal Support
 
