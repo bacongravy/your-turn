@@ -19,11 +19,6 @@ enum CheckState: Equatable {
 struct HealthStatus {
     var hooks: CheckState = .checking
     var notifications: CheckState = .checking
-    var automation: CheckState = .unknown  // Don't auto-check (triggers permission dialog)
+    var iTermIntegration: CheckState = .unknown
     var socket: CheckState = .checking
-
-    /// Count of critical issues (excludes automation which is optional)
-    var criticalIssuesCount: Int {
-        [hooks, notifications, socket].filter { $0 == .failed }.count
-    }
 }

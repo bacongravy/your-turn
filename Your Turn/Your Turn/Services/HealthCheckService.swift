@@ -17,7 +17,7 @@ class HealthCheckService: ObservableObject {
     @Published var status = HealthStatus()
 
     private let hookInstaller = HookInstaller()
-    weak var socketServer: SocketServer?
+    var socketServer: SocketServer = .shared
 
     private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "HealthCheckService")
 
@@ -28,17 +28,21 @@ class HealthCheckService: ObservableObject {
     func checkAll() async {
         logger.debug("Running all health checks")
 
+        status.socket = checkSocket()
         status.hooks = checkHooks()
         status.notifications = await checkNotifications()
         // Don't check automation if in .unknown state - it triggers a permission dialog
         // User must explicitly click "Test" to check automation status
         // Re-check automation if it was failed (user may have fixed it in Privacy settings)
-        if status.automation == .failed {
-            testAutomation(openSettingsOnFailure: false)
+        if status.iTermIntegration == .failed {
+            await checkITermIntegrationStatus()
         }
-        status.socket = checkSocket()
 
-        logger.info("Health check complete: hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), automation=\(String(describing: self.status.automation)), socket=\(String(describing: self.status.socket))")
+        logger.info("Health check complete: socket=\(String(describing: self.status.socket)), hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), automation=\(String(describing: self.status.iTermIntegration))")
+    }
+
+    private func checkSocket() -> CheckState {
+        return (socketServer.isRunning && socketServer.error == nil) ? .ok : .failed
     }
 
     private func checkHooks() -> CheckState {
@@ -57,52 +61,42 @@ class HealthCheckService: ObservableObject {
         }
     }
 
-    private func checkAutomation() -> CheckState {
-        // Only check if iTerm2 is installed
-        guard FileManager.default.fileExists(atPath: "/Applications/iTerm.app") else {
-            return .ok  // Not applicable if iTerm2 not installed
-        }
+    /// Check automation permission by triggering AppleScript
+    /// WARNING: This will show a permission dialog if not yet granted!
+    /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
+    func checkITermIntegrationStatus() async {
+        logger.info("Checking iTerm integration status")
+        status.iTermIntegration = .checking
 
-        let script = NSAppleScript(source: """
-            tell application "iTerm" to count windows
-        """)
+        await withCheckedContinuation { continuation in
+            ITerm2.requestAutomationPermission { result in
+                switch result {
+                case .success:
+                    self.status.iTermIntegration = .ok
+                case .denied, .error:
+                    self.status.iTermIntegration = .failed
+                }
 
-        var errorInfo: NSDictionary?
-        _ = script?.executeAndReturnError(&errorInfo)
-
-        if let error = errorInfo {
-            let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
-            // -1743 = permission denied
-            if errorNumber == -1743 {
-                return .failed
+                self.logger.info("iTerm integration check complete: \(String(describing: self.status.iTermIntegration))")
+                continuation.resume()
             }
         }
-
-        return .ok
     }
-
-    private func checkSocket() -> CheckState {
-        guard let server = socketServer else {
-            return .failed
-        }
-        return (server.isRunning && server.error == nil) ? .ok : .failed
-    }
-
     // MARK: - Repair Actions
 
     /// Repair hooks by installing them
-    func repairHooks() async throws {
+    func repairHooks() async {
         logger.info("Attempting to repair hooks")
 
         // Check if already installed (skip if so)
         guard !hookInstaller.isInstalled() else {
-            logger.debug("Hooks already installed, skipping repair")
+            logger.info("Hooks already installed, skipping repair")
             status.hooks = .ok
             return
         }
 
-        try hookInstaller.installHooks()
-        status.hooks = hookInstaller.isInstalled() ? .ok : .failed
+        let success = hookInstaller.installHooks()
+        status.hooks = success ? .ok : .failed
 
         logger.info("Hooks repair complete: \(String(describing: self.status.hooks))")
     }
@@ -114,32 +108,20 @@ class HealthCheckService: ObservableObject {
             NSWorkspace.shared.open(url)
         }
     }
+    
+    func repairITermIntegration() async {
+        logger.info("Attempting to repair iTerm integration")
+        await checkITermIntegrationStatus()
 
-    /// Check automation permission by triggering AppleScript
-    /// WARNING: This will show a permission dialog if not yet granted!
-    /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
-    /// - Parameter openSettingsOnFailure: If true and check fails, opens Privacy settings
-    func testAutomation(openSettingsOnFailure: Bool = false) {
-        logger.info("Checking automation permission (user-initiated)")
-
-        // Execute AppleScript to trigger permission dialog
-        let script = NSAppleScript(source: """
-            tell application "iTerm" to count windows
-        """)
-
-        var errorInfo: NSDictionary?
-        _ = script?.executeAndReturnError(&errorInfo)
-
-        // Check the result
-        status.automation = checkAutomation()
-
-        logger.info("Automation check complete: \(String(describing: self.status.automation))")
-
-        // If failed and requested, open Privacy settings so user can grant permission
-        if openSettingsOnFailure && status.automation == .failed {
+        if self.status.iTermIntegration == .failed {
+            self.logger.info("Opening privacy automation settings (manual repair required)")
             if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
                 NSWorkspace.shared.open(url)
             }
         }
+        else {
+            self.logger.info("iTerm integration already set up, skipping repair")
+        }
     }
+
 }

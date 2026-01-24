@@ -12,7 +12,7 @@ struct HealthStatusSection: View {
     @StateObject private var healthService = HealthCheckService()
     @AppStorage("setupComplete") private var setupComplete = true
 
-    var socketServer: SocketServer?
+    var socketServer: SocketServer = .shared
 
     /// Publisher for app activation (works with programmatic NSWindow)
     private let appDidBecomeActive = NotificationCenter.default.publisher(
@@ -30,30 +30,29 @@ struct HealthStatusSection: View {
             HealthCheckRow(
                 title: "Hooks Installed",
                 state: healthService.status.hooks,
-                onAction: repairHooks
+                onRepairAction: healthService.repairHooks
             )
 
             HealthCheckRow(
                 title: "Notifications Permitted",
                 state: healthService.status.notifications,
-                onAction: repairNotifications,
-                okActionLabel: "Configure",
-                onOkAction: repairNotifications
+                onRepairAction: healthService.repairNotifications,
+                onAction: healthService.repairNotifications
             )
-
-            HealthCheckRow(
-                title: "iTerm Integration",
-                state: healthService.status.automation,
-                actionLabel: healthService.status.automation == .unknown ? "Check" : "Fix",
-                onAction: healthService.status.automation == .unknown ? checkAutomation : fixAutomation
-            )
+            if (ITerm2.isInstalled()) {
+                HealthCheckRow(
+                    title: "iTerm Integration",
+                    state: healthService.status.iTermIntegration,
+                    onUnknownAction: healthService.checkITermIntegrationStatus,
+                    onRepairAction: healthService.repairITermIntegration
+                )
+            }
 
         } header: {
             Text("Integration Status")
         }
         .onAppear {
-            // Use provided socketServer or fall back to shared instance
-            healthService.socketServer = socketServer ?? SocketServer.shared
+            healthService.socketServer = socketServer
             Task {
                 await healthService.checkAll()
             }
@@ -65,41 +64,21 @@ struct HealthStatusSection: View {
             }
         }
     }
-
-    // MARK: - Repair Wrappers
-
-    private func repairHooks() async {
-        do {
-            try await healthService.repairHooks()
-        } catch {
-            // Silent failure - status shows result
-        }
-    }
-
-    private func repairNotifications() async {
-        healthService.repairNotifications()
-    }
-
-    private func checkAutomation() async {
-        // Just check, don't open settings
-        healthService.testAutomation(openSettingsOnFailure: false)
-    }
-
-    private func fixAutomation() async {
-        // Re-check and open settings if still failed
-        healthService.testAutomation(openSettingsOnFailure: true)
-    }
 }
 
 /// A single row in the health checklist
 private struct HealthCheckRow: View {
+
     let title: String
     var subtitle: String?
     let state: CheckState
-    var actionLabel: String = "Fix"
+    var unknownLabel: String = "Check"
+    var onUnknownAction: (() async -> Void)? = nil
+    var checkingLabel: String = "Checking..."
+    var repairLabel: String = "Fix"
+    var onRepairAction: (() async -> Void)? = nil
+    var actionLabel: String = "Configure"
     var onAction: (() async -> Void)? = nil
-    var okActionLabel: String? = nil
-    var onOkAction: (() async -> Void)? = nil
 
     @State private var isActing = false
 
@@ -121,7 +100,6 @@ private struct HealthCheckRow: View {
 
             Spacer()
 
-            // Action button - show for failed/unknown with onAction, or ok with onOkAction
             if let (label, action) = currentAction {
                 Button(label) {
                     Task {
@@ -139,10 +117,15 @@ private struct HealthCheckRow: View {
 
     /// Returns the appropriate button label and action based on current state
     private var currentAction: (String, () async -> Void)? {
-        if (state == CheckState.failed || state == CheckState.unknown), let onAction = onAction {
+        if (state == CheckState.unknown), let onUnknownAction = onUnknownAction {
+            return (unknownLabel, onUnknownAction)
+        } else if state == .checking {
+            return (checkingLabel, {})
+        }
+        if (state == CheckState.failed), let onRepairAction = onRepairAction {
+            return (repairLabel, onRepairAction)
+        } else if state == CheckState.ok, let onAction = onAction {
             return (actionLabel, onAction)
-        } else if state == CheckState.ok, let okLabel = okActionLabel, let okAction = onOkAction {
-            return (okLabel, okAction)
         }
         return nil
     }
@@ -157,7 +140,7 @@ private struct HealthCheckRow: View {
             Image(systemName: "xmark.circle.fill")
                 .foregroundStyle(.red)
         case .checking:
-            Image(systemName: "circle.dotted")
+            Image(systemName: "ellipsis.circle")
                 .foregroundStyle(.secondary)
         case .unknown:
             Image(systemName: "questionmark.circle")
