@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
     @objc private func openSettingsWindow() {
         if settingsWindow == nil {
-            let contentView = SettingsView(socketServer: SocketServer.shared)
+            let contentView = SettingsView()
 
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 450, height: 800),

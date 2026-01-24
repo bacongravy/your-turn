@@ -14,7 +14,7 @@ import os.log
 @MainActor
 class SocketServer: ObservableObject {
     /// Shared instance for access from non-SwiftUI code (e.g., AppDelegate-created windows)
-    static var shared: SocketServer?
+    static var shared: SocketServer!
 
     private var serverSocket: Int32 = -1
     private var acceptSource: DispatchSourceRead?

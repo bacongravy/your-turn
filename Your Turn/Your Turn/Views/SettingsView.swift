@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    var socketServer: SocketServer?
+    var socketServer: SocketServer = .shared
 
     var body: some View {
         Form {

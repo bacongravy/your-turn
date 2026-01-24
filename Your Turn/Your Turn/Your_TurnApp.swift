@@ -32,22 +32,9 @@ struct SetupPendingMenu: View {
     }
 }
 
-/// Wrapper view to handle socket server lifecycle and error alerts
+/// Menu bar content
 struct MenuBarContentView: View {
-    @ObservedObject var socketServer: SocketServer
-    @State private var showErrorAlert = false
-    @State private var errorMessage = ""
-    @State private var notificationService: NotificationService?
-
     var body: some View {
-        Color.clear
-            .frame(width: 0, height: 0)
-            .task {
-                if notificationService == nil {
-                    notificationService = NotificationService(socketServer: socketServer)
-                }
-            }
-
         Button("Settings...") {
             NotificationCenter.default.post(name: .openSettings, object: nil)
         }
@@ -56,19 +43,7 @@ struct MenuBarContentView: View {
         Divider()
 
         Button("Quit") {
-            socketServer.stop()
             NSApplication.shared.terminate(nil)
-        }
-        .onChange(of: socketServer.error != nil) { _, hasError in
-            if hasError, let error = socketServer.error {
-                errorMessage = error.localizedDescription
-                showErrorAlert = true
-            }
-        }
-        .alert("Socket Server Error", isPresented: $showErrorAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Failed to start socket server: \(errorMessage)")
         }
     }
 }
@@ -77,13 +52,17 @@ struct MenuBarContentView: View {
 struct Your_TurnApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var socketServer: SocketServer
+    @StateObject private var notificationService: NotificationService
     @AppStorage("setupComplete") private var setupComplete = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
 
     init() {
         // Create socket server and set shared reference immediately
         // This ensures it's available before any views try to access it
         let server = SocketServer()
         _socketServer = StateObject(wrappedValue: server)
+        _notificationService = StateObject(wrappedValue: NotificationService(socketServer: server))
         SocketServer.shared = server
     }
 
@@ -92,10 +71,21 @@ struct Your_TurnApp: App {
         MenuBarExtra("Your Turn", image: "MenuBarIcon") {
             Group {
                 if setupComplete {
-                    MenuBarContentView(socketServer: socketServer)
+                    MenuBarContentView()
                 } else {
                     SetupPendingMenu()
                 }
+            }
+            .onChange(of: socketServer.error != nil) { _, hasError in
+                if hasError, let error = socketServer.error {
+                    errorMessage = error.localizedDescription
+                    showErrorAlert = true
+                }
+            }
+            .alert("Socket Server Error", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Failed to start socket server: \(errorMessage)")
             }
         }
     }
