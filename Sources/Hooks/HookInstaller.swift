@@ -111,6 +111,37 @@ class HookInstaller {
         logger.info("Hook uninstallation complete")
     }
 
+    /// Silently update the hook script if it already exists and content differs.
+    /// Used on app launch to ensure existing users get script updates without prompts.
+    /// Returns true if the script was updated, false if it didn't exist or was already current.
+    @discardableResult
+    func updateScriptIfPresent() -> Bool {
+        let fm = FileManager.default
+        let scriptPath = hooksDir.appendingPathComponent(scriptName)
+
+        guard fm.fileExists(atPath: scriptPath.path) else {
+            return false
+        }
+
+        // Compare content to avoid unnecessary writes
+        guard let bundledScript = Bundle.main.url(forResource: "your-turn-notify", withExtension: "sh"),
+              let bundledContent = try? Data(contentsOf: bundledScript),
+              let deployedContent = try? Data(contentsOf: scriptPath),
+              bundledContent != deployedContent else {
+            logger.debug("Hook script already current, skipping update")
+            return false
+        }
+
+        do {
+            try deployHookScript()
+            logger.info("Updated hook script to new version")
+            return true
+        } catch {
+            logger.error("Failed to update hook script: \(error.localizedDescription)")
+            return false
+        }
+    }
+
     /// Check if our hooks are currently installed
     func isInstalled() -> Bool {
         let fm = FileManager.default

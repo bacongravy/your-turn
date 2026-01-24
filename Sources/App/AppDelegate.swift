@@ -36,9 +36,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             object: nil
         )
 
-        // Open setup window on first launch
+        // Handle launch based on setup state
         if !UserDefaults.standard.bool(forKey: "setupComplete") {
+            // First launch - show setup wizard
             openSetupWindow()
+        } else {
+            // Returning user - maintain hooks
+            let hookInstaller = HookInstaller()
+
+            // Silently update hook script if it exists (seamless upgrades)
+            hookInstaller.updateScriptIfPresent()
+
+            // If hooks not installed at all, prompt user via settings
+            if !hookInstaller.isInstalled() {
+                openSettingsWindow()
+            }
         }
     }
 
