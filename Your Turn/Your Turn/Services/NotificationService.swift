@@ -73,7 +73,7 @@ class NotificationService: ObservableObject {
         }
 
         // Check smart suppression
-        if shouldSuppress(event: event) {
+        if ITerm2.shouldSuppressNotification(for: event) {
             logger.debug("Notification suppressed: user is focused on iTerm session \(event.termSessionId ?? "unknown")")
             return
         }
@@ -181,48 +181,4 @@ class NotificationService: ObservableObject {
         }
     }
 
-    private func shouldSuppress(event: HookEvent) -> Bool {
-        // If no terminal session ID, can't suppress
-        guard let termSessionId = event.termSessionId, !termSessionId.isEmpty else {
-            return false
-        }
-
-        // Check if iTerm2 is frontmost app
-        guard let frontmostApp = NSWorkspace.shared.frontmostApplication,
-              frontmostApp.bundleIdentifier == "com.googlecode.iterm2" else {
-            return false
-        }
-
-        // Get current iTerm session via AppleScript
-        guard let currentSessionId = getCurrentiTermSessionId() else {
-            return false
-        }
-
-        // Suppress only if user is focused on the same session
-        return termSessionId == currentSessionId
-    }
-
-    private func getCurrentiTermSessionId() -> String? {
-        let script = """
-            tell application "iTerm2"
-                tell current session of current window
-                    return unique id
-                end tell
-            end tell
-            """
-
-        guard let appleScript = NSAppleScript(source: script) else {
-            return nil
-        }
-
-        var errorInfo: NSDictionary?
-        let result = appleScript.executeAndReturnError(&errorInfo)
-
-        if errorInfo != nil {
-            // iTerm not running, no window, or other error - fail gracefully
-            return nil
-        }
-
-        return result.stringValue
-    }
 }
