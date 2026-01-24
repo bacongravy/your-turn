@@ -3,12 +3,12 @@
 # test-socket.sh - Send test events to Your Turn socket
 #
 # Usage:
-#   ./scripts/test-socket.sh                    # Send permission_prompt event
-#   ./scripts/test-socket.sh permission         # Send permission_prompt event
-#   ./scripts/test-socket.sh input              # Send input_needed event
-#   ./scripts/test-socket.sh stop               # Send Stop event
-#   ./scripts/test-socket.sh error              # Send error notification
-#   ./scripts/test-socket.sh --help             # Show usage
+#   ./Scripts/test-socket.sh                    # Send permission_prompt event
+#   ./Scripts/test-socket.sh permission         # Send permission_prompt event
+#   ./Scripts/test-socket.sh input              # Send input_needed event
+#   ./Scripts/test-socket.sh stop               # Send Stop event
+#   ./Scripts/test-socket.sh error              # Send error notification
+#   ./Scripts/test-socket.sh --help             # Show usage
 #
 # The app must be running for this to work.
 

@@ -95,7 +95,7 @@ let scriptURL = URL(fileURLWithPath: scriptPath)
 let projectRoot = scriptURL.deletingLastPathComponent().deletingLastPathComponent().path
 
 // Define output paths
-let assetPath = "\(projectRoot)/Your Turn/Your Turn/Assets.xcassets/MenuBarIcon.imageset"
+let assetPath = "\(projectRoot)/Sources/Assets.xcassets/MenuBarIcon.imageset"
 let icon1xPath = "\(assetPath)/MenuBarIcon@1x.png"
 let icon2xPath = "\(assetPath)/MenuBarIcon@2x.png"
 

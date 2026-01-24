@@ -21,7 +21,7 @@ Claude Code Hook → Shell Script → Unix Socket → Your Turn App → macOS No
 ### Source Structure
 
 ```
-Your Turn/
+Sources/
 ├── Your_TurnApp.swift          # App entry point, menu bar setup
 ├── App/                        # App lifecycle & infrastructure
 │   ├── AppDelegate.swift           # Window management, notification delegate
@@ -104,8 +104,7 @@ whoami  # Returns 'claude' in limited environment
 
 **Build in limited environment (no signing):**
 ```bash
-cd "Your Turn"
-xcodebuild -scheme "Your Turn" -configuration Debug build \
+xcodebuild -project YourTurn.xcodeproj -scheme "Your Turn" -configuration Debug build \
   CODE_SIGN_IDENTITY="" \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGNING_ALLOWED=NO
@@ -113,8 +112,7 @@ xcodebuild -scheme "Your Turn" -configuration Debug build \
 
 **Build in full environment (with signing):**
 ```bash
-cd "Your Turn"
-xcodebuild -scheme "Your Turn" -configuration Debug build
+xcodebuild -project YourTurn.xcodeproj -scheme "Your Turn" -configuration Debug build
 ```
 
 ### SourceKit False Positives
@@ -132,7 +130,7 @@ SourceKit (Swift language server) often reports false errors when editing files 
 
 ### Scripts
 
-Utility scripts in `scripts/`:
+Utility scripts in `Scripts/`:
 - `test-socket.sh` - Send test events to the Unix socket
 - `reset-for-testing.sh` - Reset app state for fresh testing
 - `generate-menu-icon.swift` - Generate menu bar icon assets
