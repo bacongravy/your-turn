@@ -11,9 +11,11 @@ import Foundation
 /// Implementations handle terminal-specific activation logic (AppleScript, NSWorkspace, etc.).
 protocol TerminalActivating {
     /// Activate the terminal, optionally focusing a specific session.
-    /// - Parameter sessionId: Optional session identifier (terminal-specific format).
-    ///   Implementations may ignore this if they don't support session-level focus.
-    func activate(sessionId: String?)
+    /// - Parameters:
+    ///   - termSessionId: TERM_SESSION_ID for iTerm2 (e.g., "w0t0p0:UUID").
+    ///   - tty: TTY path for Terminal.app (e.g., "/dev/ttys001").
+    /// Implementations use whichever identifier is relevant and ignore the other.
+    func activate(termSessionId: String?, tty: String?)
 }
 
 /// Registry mapping TERM_PROGRAM values to their terminal controllers.

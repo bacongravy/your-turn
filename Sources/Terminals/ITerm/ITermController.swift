@@ -15,7 +15,7 @@ final class ITermController: TerminalActivating {
     static let shared = ITermController()
     private init() {}
 
-    func activate(sessionId: String?) {
-        ITerm2.activate(sessionId: sessionId)
+    func activate(termSessionId: String?, tty: String?) {
+        ITerm2.activate(sessionId: termSessionId)
     }
 }
