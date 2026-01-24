@@ -37,13 +37,16 @@ Sources/
 │       └── HealthStatus.swift          # Health state model
 ├── Terminals/                  # Terminal integrations
 │   ├── TerminalController.swift    # Protocol + registry
+│   ├── AppleScriptRunner.swift     # Shared AppleScript utilities
 │   ├── ITerm/
-│   │   ├── ITerm2.swift                # Shell integration detection
-│   │   └── ITermController.swift       # AppleScript control
+│   │   ├── ITerm2.swift                # Centralized iTerm2 logic
+│   │   └── ITermController.swift       # TerminalActivating adapter
 │   ├── TerminalApp/
-│   │   └── TerminalAppController.swift # Terminal.app control
+│   │   ├── TerminalApp.swift           # Centralized Terminal.app logic
+│   │   └── TerminalAppController.swift # TerminalActivating adapter
 │   └── Warp/
-│       └── WarpController.swift        # Warp control (basic)
+│       ├── Warp.swift                  # Centralized Warp logic
+│       └── WarpController.swift        # TerminalActivating adapter
 ├── Models/                     # Data models
 │   ├── HookEvent.swift             # JSON event model from Claude Code
 │   └── SystemSound.swift           # Sound picker data model
@@ -61,6 +64,7 @@ Sources/
 │   │   ├── WelcomeStep.swift           # Welcome/intro step
 │   │   ├── HooksStep.swift             # Hook installation step
 │   │   ├── NotificationsStep.swift     # Notification permission step
+│   │   ├── TerminalAppIntegrationStep.swift  # Terminal.app integration step
 │   │   ├── ITermIntegrationStep.swift  # iTerm2 integration step
 │   │   ├── LaunchAtLoginStep.swift     # Login item setup step
 │   │   └── CompleteStep.swift          # Setup complete summary
