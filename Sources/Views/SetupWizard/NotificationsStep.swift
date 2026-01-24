@@ -97,9 +97,9 @@ struct NotificationsStep: View {
 
     private func checkCurrentStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-            DispatchQueue.main.async {
-                authorizationStatus = settings.authorizationStatus
-                showDeniedMessage = settings.authorizationStatus == .denied
+            DispatchQueue.main.async { @MainActor in
+                self.authorizationStatus = settings.authorizationStatus
+                self.showDeniedMessage = settings.authorizationStatus == .denied
             }
         }
     }
@@ -108,14 +108,14 @@ struct NotificationsStep: View {
         isRequesting = true
 
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
-            DispatchQueue.main.async {
-                isRequesting = false
+            DispatchQueue.main.async { @MainActor in
+                self.isRequesting = false
                 if granted {
-                    authorizationStatus = .authorized
-                    onContinue(true)
+                    self.authorizationStatus = .authorized
+                    self.onContinue(true)
                 } else {
-                    showDeniedMessage = true
-                    authorizationStatus = .denied
+                    self.showDeniedMessage = true
+                    self.authorizationStatus = .denied
                 }
             }
         }

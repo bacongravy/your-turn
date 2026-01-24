@@ -72,7 +72,7 @@ class HealthCheckService: ObservableObject {
         status.iTermIntegration = .checking
 
         await withCheckedContinuation { continuation in
-            ITerm2.requestAutomationPermission { result in
+            ITerm2.requestAutomationPermission { @MainActor result in
                 switch result {
                 case .success:
                     self.status.iTermIntegration = .ok
@@ -94,7 +94,7 @@ class HealthCheckService: ObservableObject {
         status.terminalAppIntegration = .checking
 
         await withCheckedContinuation { continuation in
-            TerminalApp.requestAutomationPermission { result in
+            TerminalApp.requestAutomationPermission { @MainActor result in
                 switch result {
                 case .success:
                     self.status.terminalAppIntegration = .ok
