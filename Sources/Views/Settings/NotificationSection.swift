@@ -15,15 +15,11 @@ struct NotificationSection: View {
     @AppStorage("notify.sound") private var selectedSound: String = defaultSound
     @AppStorage("notify.soundRepeatCount") private var soundRepeatCount: Int = 1
 
-    /// System sounds loaded synchronously to ensure Picker tags are available on first render
-    private var systemSounds: [SystemSound] {
-        SystemSound.getSystemSounds()
-    }
+    /// System sounds loaded once on view creation (not on every body evaluation)
+    @State private var systemSounds: [SystemSound] = SystemSound.getSystemSounds()
 
     /// Classic sounds bundled with the app from Resources/Sounds
-    private var classicSounds: [SystemSound] {
-        SystemSound.getClassicSounds()
-    }
+    @State private var classicSounds: [SystemSound] = SystemSound.getClassicSounds()
 
     var body: some View {
         Section {

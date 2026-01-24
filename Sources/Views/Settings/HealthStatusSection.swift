@@ -11,6 +11,7 @@ import SwiftUI
 struct HealthStatusSection: View {
     @StateObject private var healthService = HealthCheckService()
     @AppStorage("setupComplete") private var setupComplete = true
+    @State private var isITermInstalled = false
 
     var socketServer: SocketServer = .shared
 
@@ -39,7 +40,7 @@ struct HealthStatusSection: View {
                 onRepairAction: healthService.repairNotifications,
                 onAction: healthService.repairNotifications
             )
-            if (ITerm2.isInstalled()) {
+            if isITermInstalled {
                 HealthCheckRow(
                     title: "iTerm Integration",
                     state: healthService.status.iTermIntegration,
@@ -51,6 +52,7 @@ struct HealthStatusSection: View {
         }
         .onAppear {
             healthService.socketServer = socketServer
+            isITermInstalled = ITerm2.isInstalled()
             Task {
                 await healthService.checkAll()
             }
