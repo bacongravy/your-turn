@@ -24,11 +24,9 @@ final class SoundPlayer {
         let defaults = UserDefaults.standard
 
         // Check if sound is enabled (default: true)
-        let soundEnabled = defaults.object(forKey: "notify.soundEnabled") != nil
-            ? defaults.bool(forKey: "notify.soundEnabled")
-            : true
-
-        guard soundEnabled else { return }
+        guard defaults.bool(forKey: "notify.soundEnabled", default: true) else {
+            return
+        }
 
         let filename = defaults.string(forKey: "notify.sound") ?? ""
         let repeatCount = defaults.integer(forKey: "notify.soundRepeatCount")

@@ -32,22 +32,44 @@ class NotificationService: ObservableObject {
     // MARK: - Event Handling
 
     private func handleEvent(_ event: HookEvent) {
-        let defaults = UserDefaults.standard
+        // === SHARED CONDITIONS (apply to both notification and sound) ===
 
-        // Check if notifications are globally enabled (default: true)
-        let notificationsEnabled = defaults.object(forKey: "notify.enabled") != nil
-            ? defaults.bool(forKey: "notify.enabled")
-            : true
-
-        guard notificationsEnabled else {
-            logger.debug("Notification suppressed: notifications globally disabled")
+        // Check if this event type is enabled
+        guard isEventTypeEnabled(for: event) else {
+            logger.debug("Event suppressed: \(self.eventTypeKey(for: event)) is disabled")
             return
         }
 
-        // Check if notification is enabled for this event type
+        // Check smart suppression (user focused on terminal)
+        guard !shouldSmartSuppress(event) else {
+            return  // Logging handled in helper
+        }
+
+        // === INDEPENDENT ACTIONS ===
+
+        // Play sound (SoundPlayer checks notify.soundEnabled internally)
+        SoundPlayer.shared.playNotificationSound()
+
+        // Post notification if enabled
+        let notificationsEnabled = UserDefaults.standard.bool(
+            forKey: "notify.enabled",
+            default: true
+        )
+
+        if notificationsEnabled {
+            Task {
+                await requestAuthorizationIfNeeded()
+                await postNotification(for: event)
+            }
+        }
+    }
+
+    // MARK: - Event Filtering
+
+    private func isEventTypeEnabled(for event: HookEvent) -> Bool {
         let key = eventTypeKey(for: event)
 
-        // Default values match EventsSection: permission/inputNeeded enabled, taskComplete/error disabled
+        // Default values: permission/inputNeeded enabled, taskComplete/error disabled
         let defaultValue: Bool
         switch key {
         case "notify.permission", "notify.inputNeeded":
@@ -58,36 +80,21 @@ class NotificationService: ObservableObject {
             defaultValue = true
         }
 
-        // Note: UserDefaults.bool(forKey:) returns false for non-existent keys,
-        // so we need to check if the key exists first
-        let isEnabled: Bool
-        if defaults.object(forKey: key) != nil {
-            isEnabled = defaults.bool(forKey: key)
-        } else {
-            isEnabled = defaultValue
-        }
+        return UserDefaults.standard.bool(forKey: key, default: defaultValue)
+    }
 
-        guard isEnabled else {
-            logger.debug("Notification suppressed: \(key) is disabled")
-            return
-        }
-
-        // Check smart suppression for each terminal type
+    private func shouldSmartSuppress(_ event: HookEvent) -> Bool {
         if ITerm2.shouldSuppressNotification(for: event) {
-            logger.debug("Notification suppressed: user is focused on iTerm session \(event.termSessionId ?? "unknown")")
-            return
+            logger.debug("Event suppressed: user focused on iTerm session \(event.termSessionId ?? "unknown")")
+            return true
         }
 
         if TerminalApp.shouldSuppressNotification(for: event) {
-            logger.debug("Notification suppressed: user is focused on Terminal.app tab \(event.tty ?? "unknown")")
-            return
+            logger.debug("Event suppressed: user focused on Terminal.app tab \(event.tty ?? "unknown")")
+            return true
         }
 
-        // Request authorization if needed, then post notification
-        Task {
-            await requestAuthorizationIfNeeded()
-            await postNotification(for: event)
-        }
+        return false
     }
 
     // MARK: - Authorization
@@ -132,9 +139,6 @@ class NotificationService: ObservableObject {
         do {
             try await UNUserNotificationCenter.current().add(request)
             logger.info("Posted notification for session \(event.sessionId): \(content.body)")
-
-            // Play sound via app (with repeat support)
-            SoundPlayer.shared.playNotificationSound()
         } catch {
             logger.error("Failed to post notification: \(error.localizedDescription)")
         }
