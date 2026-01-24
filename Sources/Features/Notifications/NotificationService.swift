@@ -69,12 +69,12 @@ class NotificationService: ObservableObject {
     private func isEventTypeEnabled(for event: HookEvent) -> Bool {
         let key = eventTypeKey(for: event)
 
-        // Default values: permission/inputNeeded enabled, taskComplete/error disabled
+        // Default values: taskComplete/inputNeeded enabled, idle disabled
         let defaultValue: Bool
         switch key {
-        case "notify.permission", "notify.inputNeeded":
+        case "notify.taskComplete", "notify.inputNeeded":
             defaultValue = true
-        case "notify.taskComplete", "notify.error":
+        case "notify.idle":
             defaultValue = false
         default:
             defaultValue = true
@@ -119,7 +119,9 @@ class NotificationService: ObservableObject {
 
     private func postNotification(for event: HookEvent) async {
         let content = UNMutableNotificationContent()
-        content.title = "Your Turn"
+        let projectName = URL(fileURLWithPath: event.cwd).lastPathComponent
+        content.title = "It's your turn!"
+        content.subtitle = "Project: \(projectName)"
         content.body = bodyMessage(for: event)
         content.interruptionLevel = .active
 
@@ -145,46 +147,39 @@ class NotificationService: ObservableObject {
     }
 
     // MARK: - Helpers
-
     private func bodyMessage(for event: HookEvent) -> String {
-        let projectName = URL(fileURLWithPath: event.cwd).lastPathComponent
-
+        logger.debug("Event hook name: \(event.hookEventName)")
         switch event.hookEventName {
-        case "notification":
-            // Check notification type
-            if event.notificationType == "permission" ||
-               (event.message?.lowercased().contains("permission") ?? false) {
-                return "Waiting for your permission in \(projectName)"
-            } else if event.notificationType == "error" {
-                if let message = event.message, !message.isEmpty {
-                    // Truncate long error messages
-                    let briefError = message.prefix(50)
-                    return "Something went wrong in \(projectName): \(briefError)"
-                }
-                return "Something went wrong in \(projectName)"
-            } else {
-                // Input needed
-                return "Waiting for your next instruction in \(projectName)"
+        case "Notification":
+            switch event.notificationType {
+            case "permission_prompt":
+                return "Claude Code is asking for permission"
+            case "elicitation_dialog":
+                return "Claude Code needs input for a tool"
+            case "idle_prompt":
+                return "Claude Code has been waiting for input"
+            default:
+                return "Claude Code needs your attention"
             }
-        case "stop":
-            return "Task complete in \(projectName)"
+        case "Stop":
+            return "Claude Code has finished"
         default:
-            return "Claude needs attention in \(projectName)"
+            return "Claude Code needs your attention"
         }
     }
 
     private func eventTypeKey(for event: HookEvent) -> String {
         switch event.hookEventName {
-        case "notification":
+        case "Notification":
             switch event.notificationType {
-            case "permission":
-                return "notify.permission"
-            case "error":
-                return "notify.error"
+            case "permission_prompt", "elicitation_dialog":
+                return "notify.inputNeeded"
+            case "idle_prompt":
+                return "notify.idle"
             default:
                 return "notify.inputNeeded"
             }
-        case "stop":
+        case "Stop":
             return "notify.taskComplete"
         default:
             return "notify.inputNeeded"

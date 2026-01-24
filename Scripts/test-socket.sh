@@ -4,10 +4,10 @@
 #
 # Usage:
 #   ./Scripts/test-socket.sh                    # Send permission_prompt event
-#   ./Scripts/test-socket.sh permission         # Send permission_prompt event
-#   ./Scripts/test-socket.sh input              # Send input_needed event
+#   ./Scripts/test-socket.sh input              # Send permission_prompt event
+#   ./Scripts/test-socket.sh mcp                # Send elicitation_dialog event
+#   ./Scripts/test-socket.sh idle               # Send idle_prompt event
 #   ./Scripts/test-socket.sh stop               # Send Stop event
-#   ./Scripts/test-socket.sh error              # Send error notification
 #   ./Scripts/test-socket.sh --help             # Show usage
 #
 # The app must be running for this to work.
@@ -26,10 +26,10 @@ usage() {
     echo "Usage: $0 [event_type]"
     echo ""
     echo "Event types:"
-    echo "  permission    Send permission_prompt event (default)"
-    echo "  input         Send input_needed event"
+    echo "  input         Send permission_prompt event (default)"
+    echo "  mcp           Send elicitation_dialog event (MCP tool input)"
+    echo "  idle          Send idle_prompt event (60s waiting)"
     echo "  stop          Send Stop event (task complete)"
-    echo "  error         Send error notification"
     echo ""
     echo "Options:"
     echo "  --help        Show this help message"
@@ -39,8 +39,9 @@ usage() {
     echo "  TERM_SESSION_ID   Terminal session ID (default: test-term-session)"
     echo ""
     echo "Examples:"
-    echo "  $0                              # Send permission event (iTerm.app)"
-    echo "  $0 input                        # Send input needed event"
+    echo "  $0                              # Send input event (iTerm.app)"
+    echo "  $0 mcp                          # Send MCP elicitation event"
+    echo "  $0 idle                         # Send idle prompt event"
     echo "  TERM_PROGRAM=Apple_Terminal $0  # Test Terminal.app activation"
     echo "  TERM_PROGRAM=WarpTerminal $0    # Test Warp activation"
 }
@@ -79,25 +80,22 @@ CWD="${PWD}"
 PROJECT_NAME=$(basename "$CWD")
 
 # Parse arguments
-EVENT_TYPE="${1:-permission}"
+EVENT_TYPE="${1:-input}"
 
 case "$EVENT_TYPE" in
     --help|-h)
         usage
         exit 0
         ;;
-    permission)
+    input)
         check_socket
         JSON=$(cat <<EOF
 {
     "session_id": "$SESSION_ID",
     "cwd": "$CWD",
-    "hook_event_name": "PreToolUse",
-    "tool_name": "Bash",
-    "tool_input": {
-        "command": "rm -rf /important/data",
-        "description": "Delete important data"
-    },
+    "hook_event_name": "Notification",
+    "notification_type": "permission_prompt",
+    "message": "Claude Code wants to run: rm -rf /important/data",
     "term_session_id": "$TERM_SESSION_ID",
     "term_program": "$TERM_PROGRAM",
     "tty": "$TTY_PATH"
@@ -107,30 +105,52 @@ EOF
         send_event "$JSON" "permission_prompt"
         echo ""
         echo "Event details:"
-        echo "  Type: permission_prompt (PreToolUse)"
-        echo "  Tool: Bash"
+        echo "  Type: Notification (permission_prompt)"
+        echo "  Message: Claude Code wants to run: rm -rf /important/data"
         echo "  Project: $PROJECT_NAME"
         ;;
-    input)
+    mcp)
         check_socket
         JSON=$(cat <<EOF
 {
     "session_id": "$SESSION_ID",
     "cwd": "$CWD",
     "hook_event_name": "Notification",
-    "notification_type": "user",
-    "message": "What color theme would you like?",
+    "notification_type": "elicitation_dialog",
+    "message": "MCP tool needs your input",
     "term_session_id": "$TERM_SESSION_ID",
     "term_program": "$TERM_PROGRAM",
     "tty": "$TTY_PATH"
 }
 EOF
 )
-        send_event "$JSON" "input_needed"
+        send_event "$JSON" "elicitation_dialog"
         echo ""
         echo "Event details:"
-        echo "  Type: input_needed (user notification)"
-        echo "  Message: What color theme would you like?"
+        echo "  Type: Notification (elicitation_dialog)"
+        echo "  Message: MCP tool needs your input"
+        echo "  Project: $PROJECT_NAME"
+        ;;
+    idle)
+        check_socket
+        JSON=$(cat <<EOF
+{
+    "session_id": "$SESSION_ID",
+    "cwd": "$CWD",
+    "hook_event_name": "Notification",
+    "notification_type": "idle_prompt",
+    "message": "Claude Code has been waiting for input",
+    "term_session_id": "$TERM_SESSION_ID",
+    "term_program": "$TERM_PROGRAM",
+    "tty": "$TTY_PATH"
+}
+EOF
+)
+        send_event "$JSON" "idle_prompt"
+        echo ""
+        echo "Event details:"
+        echo "  Type: Notification (idle_prompt)"
+        echo "  Message: Claude Code has been waiting for input"
         echo "  Project: $PROJECT_NAME"
         ;;
     stop)
@@ -150,29 +170,7 @@ EOF
         send_event "$JSON" "task_complete"
         echo ""
         echo "Event details:"
-        echo "  Type: task_complete (Stop)"
-        echo "  Project: $PROJECT_NAME"
-        ;;
-    error)
-        check_socket
-        JSON=$(cat <<EOF
-{
-    "session_id": "$SESSION_ID",
-    "cwd": "$CWD",
-    "hook_event_name": "Notification",
-    "notification_type": "error",
-    "message": "Build failed: 3 errors found",
-    "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "$TERM_PROGRAM",
-    "tty": "$TTY_PATH"
-}
-EOF
-)
-        send_event "$JSON" "error"
-        echo ""
-        echo "Event details:"
-        echo "  Type: error notification"
-        echo "  Message: Build failed: 3 errors found"
+        echo "  Type: Stop"
         echo "  Project: $PROJECT_NAME"
         ;;
     *)

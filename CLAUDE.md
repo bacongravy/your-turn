@@ -90,10 +90,9 @@ Sources/
 | `notify.soundEnabled` | Bool | true | Enable/disable sound playback |
 | `notify.sound` | String | "Sosumi.aiff" | Notification sound filename |
 | `notify.soundRepeatCount` | Int | 1 | Times to play sound (1-5) |
-| `notify.permission` | Bool | true | Notify on permission requests |
-| `notify.inputNeeded` | Bool | true | Notify when input needed |
-| `notify.taskComplete` | Bool | false | Notify on task complete |
-| `notify.error` | Bool | false | Notify on errors |
+| `notify.taskComplete` | Bool | true | Notify on task complete (Stop) |
+| `notify.inputNeeded` | Bool | true | Notify when input needed (permission_prompt, elicitation_dialog) |
+| `notify.idle` | Bool | false | Notify after 60s idle (idle_prompt) |
 
 ## Development
 
