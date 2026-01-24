@@ -19,6 +19,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Register defaults so sounds work before Settings is opened
+        UserDefaults.standard.register(defaults: [
+            "notify.enabled": true,
+            "notify.soundEnabled": true,
+            "notify.sound": "Sosumi.aiff",
+            "notify.soundRepeatCount": 1,
+            "notify.taskComplete": true,
+            "notify.inputNeeded": true,
+            "notify.idle": false
+        ])
+
         // Set notification delegate early, before any notifications are posted
         UNUserNotificationCenter.current().delegate = self
 
