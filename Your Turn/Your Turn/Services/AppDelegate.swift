@@ -118,6 +118,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         center.removeAllPendingNotificationRequests()
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     // MARK: - UNUserNotificationCenterDelegate
 
     /// Called when a notification is about to be presented while app is in foreground.
