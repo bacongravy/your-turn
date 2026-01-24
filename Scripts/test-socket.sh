@@ -74,6 +74,7 @@ send_event() {
 SESSION_ID="test-$(date +%s)"
 TERM_SESSION_ID="${TERM_SESSION_ID:-test-term-session}"
 TERM_PROGRAM="${TERM_PROGRAM:-iTerm.app}"
+TTY_PATH=$(tty 2>/dev/null || echo "/dev/ttys000")
 CWD="${PWD}"
 PROJECT_NAME=$(basename "$CWD")
 
@@ -98,7 +99,8 @@ case "$EVENT_TYPE" in
         "description": "Delete important data"
     },
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "$TERM_PROGRAM"
+    "term_program": "$TERM_PROGRAM",
+    "tty": "$TTY_PATH"
 }
 EOF
 )
@@ -119,7 +121,8 @@ EOF
     "notification_type": "user",
     "message": "What color theme would you like?",
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "$TERM_PROGRAM"
+    "term_program": "$TERM_PROGRAM",
+    "tty": "$TTY_PATH"
 }
 EOF
 )
@@ -139,7 +142,8 @@ EOF
     "hook_event_name": "Stop",
     "stop_hook_active": true,
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "$TERM_PROGRAM"
+    "term_program": "$TERM_PROGRAM",
+    "tty": "$TTY_PATH"
 }
 EOF
 )
@@ -159,7 +163,8 @@ EOF
     "notification_type": "error",
     "message": "Build failed: 3 errors found",
     "term_session_id": "$TERM_SESSION_ID",
-    "term_program": "$TERM_PROGRAM"
+    "term_program": "$TERM_PROGRAM",
+    "tty": "$TTY_PATH"
 }
 EOF
 )

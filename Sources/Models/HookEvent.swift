@@ -33,6 +33,7 @@ struct HookEvent: Codable {
     // Environment variables passed by hook script
     let termSessionId: String?
     let termProgram: String?
+    let tty: String?
 
     enum CodingKeys: String, CodingKey {
         case sessionId = "session_id"
@@ -47,6 +48,7 @@ struct HookEvent: Codable {
         case stopHookActive = "stop_hook_active"
         case termSessionId = "term_session_id"
         case termProgram = "term_program"
+        case tty
     }
 }
 
