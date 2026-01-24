@@ -70,8 +70,8 @@ struct HooksStep: View {
 
                     // Info text below button - hidden when installed
                     VStack(spacing: 4) {
-                        Text("Creates config in ~/.claude/settings.json")
-                        Text("Deploys a script to ~/.claude/hooks/")
+                        Text("Adds hooks to ~/.claude/settings.json")
+                        Text("Installs a script to ~/.claude/hooks/")
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
