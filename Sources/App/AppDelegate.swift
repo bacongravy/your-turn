@@ -147,11 +147,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         let userInfo = response.notification.request.content.userInfo
         let termProgram = userInfo["termProgram"] as? String
         let termSessionId = userInfo["termSessionId"] as? String
+        let tty = userInfo["tty"] as? String
 
         // Route to appropriate controller via registry
         if let controller = TerminalRegistry.shared.controller(for: termProgram) {
             Task { @MainActor in
-                controller.activate(sessionId: termSessionId)
+                controller.activate(termSessionId: termSessionId, tty: tty)
             }
         }
         // Silent no-op for unknown terminals (no controller found)

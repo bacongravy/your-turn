@@ -72,9 +72,14 @@ class NotificationService: ObservableObject {
             return
         }
 
-        // Check smart suppression
+        // Check smart suppression for each terminal type
         if ITerm2.shouldSuppressNotification(for: event) {
             logger.debug("Notification suppressed: user is focused on iTerm session \(event.termSessionId ?? "unknown")")
+            return
+        }
+
+        if TerminalApp.shouldSuppressNotification(for: event) {
+            logger.debug("Notification suppressed: user is focused on Terminal.app tab \(event.tty ?? "unknown")")
             return
         }
 
@@ -111,12 +116,13 @@ class NotificationService: ObservableObject {
         content.body = bodyMessage(for: event)
         content.interruptionLevel = .active
 
-        // Store session info for iTerm focusing
+        // Store session info for terminal focusing
         content.userInfo = [
             "sessionId": event.sessionId,
             "cwd": event.cwd,
             "termSessionId": event.termSessionId ?? "",
-            "termProgram": event.termProgram ?? ""
+            "termProgram": event.termProgram ?? "",
+            "tty": event.tty ?? ""
         ]
 
         // Use session-based identifier for notification replacement
