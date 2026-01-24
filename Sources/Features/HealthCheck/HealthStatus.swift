@@ -17,8 +17,8 @@ enum CheckState: Equatable {
 
 /// Aggregated health status for all integrations
 struct HealthStatus {
-    var hooks: CheckState = .checking
-    var notifications: CheckState = .checking
+    var hooks: CheckState = .unknown
+    var notifications: CheckState = .unknown
     var iTermIntegration: CheckState = .unknown
-    var socket: CheckState = .checking
+    var socket: CheckState = .unknown
 }
