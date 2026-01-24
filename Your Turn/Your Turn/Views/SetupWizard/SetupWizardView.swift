@@ -48,13 +48,13 @@ struct SetupWizardView: View {
         }
         .frame(width: 500, height: 400)
         .onAppear {
-            checkITermInstalled()
+            isITermInstalled = ITerm2.isInstalled()
         }
         .onReceive(NotificationCenter.default.publisher(for: .openSetup)) { _ in
             // Reset to first step when wizard is opened (including re-run)
             currentStep = 0
             status = WizardStatus()
-            checkITermInstalled()
+            isITermInstalled = ITerm2.isInstalled()
         }
     }
 
@@ -74,39 +74,21 @@ struct SetupWizardView: View {
                 onBack: prevStep
             )
         case 3:
-            if isITermInstalled {
-                ITermIntegrationStep(
-                    onContinue: { configured in
-                        status.iTermConfigured = configured
-                        nextStep()
-                    },
-                    onBack: prevStep
-                )
-            } else {
-                LaunchAtLoginStep(
-                    onContinue: { enabled in
-                        status.launchAtLoginEnabled = enabled
-                        nextStep()
-                    },
-                    onBack: prevStep
-                )
-            }
+            ITermIntegrationStep(
+                onContinue: { configured in
+                    status.iTermConfigured = configured
+                    nextStep()
+                },
+                onBack: prevStep
+            )
         case 4:
-            if isITermInstalled {
-                LaunchAtLoginStep(
-                    onContinue: { enabled in
-                        status.launchAtLoginEnabled = enabled
-                        nextStep()
-                    },
-                    onBack: prevStep
-                )
-            } else {
-                CompleteStep(
-                    onFinish: onComplete,
-                    isITermInstalled: false,
-                    status: status
-                )
-            }
+            LaunchAtLoginStep(
+                onContinue: { enabled in
+                    status.launchAtLoginEnabled = enabled
+                    nextStep()
+                },
+                onBack: prevStep
+            )
         case 5:
             CompleteStep(
                 onFinish: onComplete,
@@ -118,16 +100,16 @@ struct SetupWizardView: View {
         }
     }
 
-    /// Display index for progress dots (accounts for iTerm step)
+    /// Display index for progress dots
     private var displayStepIndex: Int {
-        currentStep
+        (currentStep > 2 && !isITermInstalled) ? currentStep - 1 : currentStep            
     }
 
     private func nextStep() {
-        let maxStep = isITermInstalled ? 5 : 4
-        if currentStep < maxStep {
+        let stepIncrement = (currentStep == 2 && !isITermInstalled) ? 2 : 1
+        if currentStep < 5 {
             withAnimation(.easeInOut(duration: 0.2)) {
-                currentStep += 1
+                currentStep += stepIncrement
             }
         }
     }
@@ -138,14 +120,6 @@ struct SetupWizardView: View {
                 currentStep -= 1
             }
         }
-    }
-
-    private func checkITermInstalled() {
-        let iTermPaths = [
-            "/Applications/iTerm.app",
-            NSHomeDirectory() + "/Applications/iTerm.app"
-        ]
-        isITermInstalled = iTermPaths.contains { FileManager.default.fileExists(atPath: $0) }
     }
 }
 

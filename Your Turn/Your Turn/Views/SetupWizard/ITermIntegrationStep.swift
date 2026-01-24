@@ -7,13 +7,6 @@
 
 import SwiftUI
 
-/// Automation permission result
-private enum AutomationResult: Equatable {
-    case success
-    case denied
-    case error(String)
-}
-
 /// iTerm Integration step - requests automation permission for iTerm2
 /// This step is only shown when iTerm2 is installed
 struct ITermIntegrationStep: View {
@@ -112,34 +105,9 @@ struct ITermIntegrationStep: View {
     private func requestAutomation() {
         isRequesting = true
 
-        Task {
-            let script = NSAppleScript(source: """
-                tell application "iTerm"
-                    set windowCount to count of windows
-                end tell
-            """)
-
-            var errorInfo: NSDictionary?
-            let result = script?.executeAndReturnError(&errorInfo)
-
-            await MainActor.run {
-                isRequesting = false
-
-                if let error = errorInfo {
-                    let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
-                    let errorMessage = error[NSAppleScript.errorMessage] as? String ?? "Unknown error"
-
-                    if errorNumber == -1743 {
-                        automationResult = .denied
-                    } else {
-                        automationResult = .error(errorMessage)
-                    }
-                } else if result != nil {
-                    automationResult = .success
-                } else {
-                    automationResult = .error("AppleScript execution failed")
-                }
-            }
+        ITerm2.requestAutomationPermission { result in
+            self.isRequesting = false
+            self.automationResult = result
         }
     }
 }
