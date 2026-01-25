@@ -21,7 +21,7 @@ struct HooksStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Install Claude Code Hooks",
-            subtitle: "Your Turn needs to install a hook that tells it when Claude stops working.",
+            subtitle: "Your Turn needs to install hooks that tell it when Claude Code is waiting for input or has finished a task.",
             onBack: onBack,
             onContinue: onContinue,
             continueDisabled: !isInstalled
@@ -70,8 +70,8 @@ struct HooksStep: View {
 
                     // Info text below button - hidden when installed
                     VStack(spacing: 4) {
-                        Text("Adds hooks to ~/.claude/settings.json")
-                        Text("Installs a script to ~/.claude/hooks/")
+                        Text("→ Adds hooks to ~/.claude/settings.json")
+                        Text("→ Installs a hook script in ~/.claude/hooks/")
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
