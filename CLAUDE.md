@@ -50,6 +50,8 @@ Sources/
 ├── Models/                     # Data models
 │   ├── HookEvent.swift             # JSON event model from Claude Code
 │   └── SystemSound.swift           # Sound picker data model
+├── Extensions/                 # Swift extensions
+│   └── UserDefaults+BoolWithDefault.swift  # Bool with default value helper
 ├── Views/                      # UI layer
 │   ├── Settings/
 │   │   ├── SettingsView.swift          # Main settings window (tabs)
