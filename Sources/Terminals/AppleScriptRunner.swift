@@ -14,6 +14,16 @@ enum AutomationResult: Equatable {
     case success
     case denied
     case error(String)
+
+    /// Returns true if this result represents an error (denied or error case)
+    var isError: Bool {
+        switch self {
+        case .success:
+            return false
+        case .denied, .error:
+            return true
+        }
+    }
 }
 
 /// Shared AppleScript execution utility.

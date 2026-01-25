@@ -14,20 +14,32 @@ struct ITermIntegrationStep: View {
 
     @State private var isRequesting = false
     @State private var automationResult: AutomationResult?
+    @State private var showGuidanceSheet = false
+
+    private let appDidBecomeActive = NotificationCenter.default.publisher(
+        for: NSApplication.didBecomeActiveNotification
+    )
 
     private var primaryButtonLabel: String {
         switch automationResult {
         case .success:
             return "Continue"
         case .denied, .error:
-            return "Continue"
+            return "Open Automation Settings"
         case .none:
             return "Enable Automation"
         }
     }
 
     private var showSkipButton: Bool {
-        automationResult == nil && !isRequesting
+        switch automationResult {
+        case .none:
+            return !isRequesting
+        case .denied, .error:
+            return true
+        case .success:
+            return false
+        }
     }
 
     var body: some View {
@@ -46,12 +58,26 @@ struct ITermIntegrationStep: View {
             statusContent: { statusView },
             infoContent: { infoView }
         )
+        .onReceive(appDidBecomeActive) { _ in
+            checkCurrentStatus()
+        }
+        .sheet(isPresented: $showGuidanceSheet) {
+            AutomationGuidanceSheet(terminalAppName: "iTerm2") {
+                showGuidanceSheet = false
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
     }
 
     private func primaryAction() {
-        if automationResult != nil {
-            onContinue(automationResult == .success)
-        } else {
+        switch automationResult {
+        case .success:
+            onContinue(true)
+        case .denied, .error:
+            showGuidanceSheet = true
+        case .none:
             requestAutomation()
         }
     }
@@ -75,24 +101,11 @@ struct ITermIntegrationStep: View {
                         .foregroundStyle(.secondary)
                 }
                 .font(.body)
-            case .denied:
+            case .denied, .error:
                 HStack(spacing: 8) {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
-                    Text("Permission denied")
-                        .foregroundStyle(.secondary)
-                }
-            case .error(let message):
-                VStack(spacing: 4) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.yellow)
-                        Text("Could not enable automation")
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(message)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("Automation is disabled")
                 }
             }
         } else {
@@ -102,19 +115,29 @@ struct ITermIntegrationStep: View {
 
     @ViewBuilder
     private var infoView: some View {
-        if automationResult == nil && !isRequesting {
-            Text("You can enable this later in System Settings > Privacy & Security > Automation")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-        } else if automationResult == .denied {
-            Text("Grant access in System Settings > Privacy > Automation")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        if let result = automationResult, result.isError {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.up.forward.app")
+                    .foregroundStyle(.blue)
+                    .font(.caption)
+                Text("Your Turn will still activate the app when Claude needs attention.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
         } else {
             Color.clear
+        }
+    }
+
+    private func checkCurrentStatus() {
+        // Only re-check if previously denied or error
+        guard let result = automationResult, result.isError else { return }
+
+        ITerm2.requestAutomationPermission { newResult in
+            self.automationResult = newResult
         }
     }
 

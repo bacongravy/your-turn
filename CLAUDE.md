@@ -69,7 +69,9 @@ Sources/
 │   │   ├── LaunchAtLoginStep.swift     # Login item setup step
 │   │   └── CompleteStep.swift          # Setup complete summary
 │   └── Components/
-│       └── ToggleRow.swift             # Reusable toggle component
+│       ├── ToggleRow.swift                 # Reusable toggle component
+│       ├── NotificationGuidanceSheet.swift # System Settings guidance for notifications
+│       └── AutomationGuidanceSheet.swift   # System Settings guidance for automation
 └── Resources/
     ├── your-turn-notify.sh         # Hook script (deployed to ~/.claude/hooks/)
     └── Sounds/                     # Classic Mac sounds (18 bundled .aiff files)

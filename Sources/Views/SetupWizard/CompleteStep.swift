@@ -73,8 +73,8 @@ private struct SummaryRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: enabled ? "checkmark" : "xmark")
-                .foregroundStyle(enabled ? .green : .red)
+            Image(systemName: enabled ? "checkmark" : "exclamationmark.triangle")
+                .foregroundStyle(enabled ? .green : .orange)
                 .font(.caption)
             Text(enabled ? enabledText : disabledText)
                 .font(.caption)

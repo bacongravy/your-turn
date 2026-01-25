@@ -155,8 +155,8 @@ private struct HealthCheckRow: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
         case .failed:
-            Image(systemName: "xmark.circle.fill")
-                .foregroundStyle(.red)
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
         case .checking:
             Image(systemName: "ellipsis.circle")
                 .foregroundStyle(.secondary)
