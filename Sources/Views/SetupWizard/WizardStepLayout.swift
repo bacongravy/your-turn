@@ -91,7 +91,7 @@ struct WizardStepLayout<StatusContent: View, InfoContent: View>: View {
                     primaryButton.action()
                 } label: {
                     Text(primaryButton.label)
-                        .frame(width: 200)
+                        .frame(width: 180)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)

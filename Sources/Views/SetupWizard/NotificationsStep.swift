@@ -113,7 +113,7 @@ struct NotificationsStep: View {
                 Image(systemName: "speaker.wave.2.fill")
                     .foregroundStyle(.blue)
                     .font(.caption)
-                Text("Your Turn will still generate audio alerts when Claude Code needs attention.")
+                Text("Your Turn can still play audio alerts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

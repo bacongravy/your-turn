@@ -15,10 +15,10 @@ struct CompleteStep: View {
 
     var body: some View {
         WizardStepLayout(
-            title: "You're All Set!",
+            title: "Your Turn is Ready",
             subtitle: "",
             icon: .systemImage("checkmark.circle.fill", .green),
-            primaryButton: WizardButton(label: "Start Using Your Turn", action: onFinish),
+            primaryButton: WizardButton(label: "Finish Setup", action: onFinish),
             infoContent: {
                 summaryList
             }

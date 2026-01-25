@@ -14,7 +14,7 @@ struct WelcomeStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Welcome to Your Turn",
-            subtitle: "→ Get notified when Claude Code needs your attention\n→ Jump to the right terminal with one click",
+            subtitle: "Find out when it's your turn.\nOne click to pick up where you left off.",
             icon: .appIcon,
             primaryButton: WizardButton(label: "Continue", action: onContinue)
         )

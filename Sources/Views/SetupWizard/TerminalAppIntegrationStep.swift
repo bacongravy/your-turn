@@ -44,7 +44,7 @@ struct TerminalAppIntegrationStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Enable macOS Terminal Automation",
-            subtitle: "Your Turn uses automation to focus the macOS Terminal tab that needs attention when you click a notification.",
+            subtitle: "Your Turn uses automation to focus the terminal that needs attention when you click a notification.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryAction,
@@ -123,7 +123,7 @@ struct TerminalAppIntegrationStep: View {
                 Image(systemName: "arrow.up.forward.app")
                     .foregroundStyle(.blue)
                     .font(.caption)
-                Text("Your Turn will still activate the app when Claude Code needs attention.")
+                Text("Your Turn will still bring the app forward.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
