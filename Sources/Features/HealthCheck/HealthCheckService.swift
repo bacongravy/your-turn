@@ -14,6 +14,8 @@ import UserNotifications
 /// Service that aggregates health checks for all integrations and provides repair actions.
 @MainActor
 class HealthCheckService: ObservableObject {
+    static let shared = HealthCheckService()
+
     @Published var status = HealthStatus()
 
     private let hookInstaller = HookInstaller()
@@ -32,12 +34,13 @@ class HealthCheckService: ObservableObject {
         status.hooks = checkHooks()
         status.notifications = await checkNotifications()
         // Don't check automation if in .unknown state - it triggers a permission dialog
-        // User must explicitly click "Test" to check automation status
-        // Re-check automation if it was failed (user may have fixed it in Privacy settings)
-        if status.iTermIntegration == .failed {
+        // User must explicitly click "Check" to trigger the first check
+        // Once checked (ok or failed), re-check on subsequent checkAll() calls
+        // since the permission dialog won't appear again
+        if status.iTermIntegration == .ok || status.iTermIntegration == .failed {
             await checkITermIntegrationStatus()
         }
-        if status.terminalAppIntegration == .failed {
+        if status.terminalAppIntegration == .ok || status.terminalAppIntegration == .failed {
             await checkTerminalAppIntegrationStatus()
         }
 

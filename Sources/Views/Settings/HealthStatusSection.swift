@@ -9,10 +9,12 @@ import SwiftUI
 
 /// Displays health status checklist with per-item Fix buttons
 struct HealthStatusSection: View {
-    @StateObject private var healthService = HealthCheckService()
+    @ObservedObject private var healthService = HealthCheckService.shared
     @AppStorage("setupComplete") private var setupComplete = true
     @State private var isITermInstalled = false
     @State private var showNotificationGuidance = false
+    @State private var showTerminalAutomationGuidance = false
+    @State private var showITermAutomationGuidance = false
 
     var socketServer: SocketServer = .shared
 
@@ -48,7 +50,8 @@ struct HealthStatusSection: View {
                 title: "macOS Terminal Automation",
                 state: healthService.status.terminalAppIntegration,
                 onUnknownAction: healthService.checkTerminalAppIntegrationStatus,
-                onRepairAction: healthService.repairTerminalAppIntegration
+                repairLabel: "Open Automation Settings",
+                onRepairAction: { showTerminalAutomationGuidance = true }
             )
 
             // Show iTerm integration if installed
@@ -57,7 +60,8 @@ struct HealthStatusSection: View {
                     title: "iTerm Automation",
                     state: healthService.status.iTermIntegration,
                     onUnknownAction: healthService.checkITermIntegrationStatus,
-                    onRepairAction: healthService.repairITermIntegration
+                    repairLabel: "Open Automation Settings",
+                    onRepairAction: { showITermAutomationGuidance = true }
                 )
             }
 
@@ -81,6 +85,18 @@ struct HealthStatusSection: View {
                 healthService.repairNotifications()
             }
         }
+        .sheet(isPresented: $showTerminalAutomationGuidance) {
+            AutomationGuidanceSheet(terminalAppName: "Terminal") {
+                showTerminalAutomationGuidance = false
+                Task { await healthService.repairTerminalAppIntegration() }
+            }
+        }
+        .sheet(isPresented: $showITermAutomationGuidance) {
+            AutomationGuidanceSheet(terminalAppName: "iTerm") {
+                showITermAutomationGuidance = false
+                Task { await healthService.repairITermIntegration() }
+            }
+        }
     }
 }
 
@@ -92,7 +108,6 @@ private struct HealthCheckRow: View {
     let state: CheckState
     var unknownLabel: String = "Check"
     var onUnknownAction: (() async -> Void)? = nil
-    var checkingLabel: String = "Checking..."
     var repairLabel: String = "Fix"
     var onRepairAction: (() async -> Void)? = nil
     var actionLabel: String = "Configure"
@@ -137,10 +152,7 @@ private struct HealthCheckRow: View {
     private var currentAction: (String, () async -> Void)? {
         if (state == CheckState.unknown), let onUnknownAction = onUnknownAction {
             return (unknownLabel, onUnknownAction)
-        } else if state == .checking {
-            return (checkingLabel, {})
-        }
-        if (state == CheckState.failed), let onRepairAction = onRepairAction {
+        } else if (state == CheckState.failed), let onRepairAction = onRepairAction {
             return (repairLabel, onRepairAction)
         } else if state == CheckState.ok, let onAction = onAction {
             return (actionLabel, onAction)
