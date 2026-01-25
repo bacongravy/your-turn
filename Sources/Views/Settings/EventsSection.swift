@@ -16,14 +16,14 @@ struct EventsSection: View {
     var body: some View {
         Section {
             ToggleRow(
-                title: "Task complete",
-                subtitle: "When the agent finishes",
-                isOn: $notifyTaskComplete
-            )
-            ToggleRow(
                 title: "Input needed",
                 subtitle: "When the agent stops to ask for input",
                 isOn: $notifyInputNeeded
+            )
+            ToggleRow(
+                title: "Task complete",
+                subtitle: "When the agent finishes",
+                isOn: $notifyTaskComplete
             )
             // idle_prompt appears broken in Claude Code (GitHub issue #8320 closed as "not planned")
             // ToggleRow(
