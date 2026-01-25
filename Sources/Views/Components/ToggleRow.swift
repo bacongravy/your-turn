@@ -9,15 +9,17 @@ import SwiftUI
 
 struct ToggleRow: View {
     let title: String
-    let subtitle: String
+    var subtitle: String? = nil
     @Binding var isOn: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Toggle(title, isOn: $isOn)
-            Text(subtitle)
-                .font(.callout)
-                .foregroundStyle(.secondary)
+            if let subtitle {
+                Text(subtitle)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

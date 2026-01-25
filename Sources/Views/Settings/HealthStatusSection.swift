@@ -45,7 +45,7 @@ struct HealthStatusSection: View {
             )
             // Always show Terminal.app integration (built into macOS)
             HealthCheckRow(
-                title: "macOS Terminal",
+                title: "macOS Terminal Automation",
                 state: healthService.status.terminalAppIntegration,
                 onUnknownAction: healthService.checkTerminalAppIntegrationStatus,
                 onRepairAction: healthService.repairTerminalAppIntegration
@@ -54,7 +54,7 @@ struct HealthStatusSection: View {
             // Show iTerm integration if installed
             if isITermInstalled {
                 HealthCheckRow(
-                    title: "iTerm Integration",
+                    title: "iTerm Automation",
                     state: healthService.status.iTermIntegration,
                     onUnknownAction: healthService.checkITermIntegrationStatus,
                     onRepairAction: healthService.repairITermIntegration

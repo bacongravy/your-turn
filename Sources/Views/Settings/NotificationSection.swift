@@ -25,56 +25,46 @@ struct NotificationSection: View {
         Section {
             ToggleRow(
                 title: "Send a notification",
-                subtitle: "Send a notification when an event occurs",
                 isOn: $notificationsEnabled
             )
 
             ToggleRow(
                 title: "Play a sound",
-                subtitle: "Play a sound when an event occurs",
                 isOn: $soundEnabled
             )
+        }
 
-            VStack(alignment: .leading, spacing: 5) {
-                Picker("Sound", selection: $selectedSound) {
-                    Section(header: Text("System Sounds")) {
-                        ForEach(systemSounds) { sound in
-                            Text(sound.name).tag(sound.filename)
-                        }
-                    }
-                    Divider()
-                    Section(header: Text("Classic Sounds")) {
-                        ForEach(classicSounds) { sound in
-                            Text(sound.name).tag(sound.filename)
-                        }
+        Section {
+            Picker("Sound", selection: $selectedSound) {
+                Section(header: Text("System Sounds")) {
+                    ForEach(systemSounds) { sound in
+                        Text(sound.name).tag(sound.filename)
                     }
                 }
-                .disabled(!soundEnabled)
-                .onChange(of: selectedSound) { _, newValue in
-                    if soundEnabled {
-                        previewSound(newValue)
+                Divider()
+                Section(header: Text("Classic Sounds")) {
+                    ForEach(classicSounds) { sound in
+                        Text(sound.name).tag(sound.filename)
                     }
                 }
-                Text("Sound to play")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+            }
+            .disabled(!soundEnabled)
+            .onChange(of: selectedSound) { _, newValue in
+                if soundEnabled {
+                    previewSound(newValue)
+                }
             }
 
-            VStack(alignment: .leading, spacing: 5) {
-                Picker("Repeat count", selection: $soundRepeatCount) {
-                    ForEach(1...5, id: \.self) { count in
-                        Text("\(count)").tag(count)
-                    }
+            Picker("Times to play", selection: $soundRepeatCount) {
+                ForEach(1...5, id: \.self) { count in
+                    Text("\(count)").tag(count)
                 }
-                .disabled(!soundEnabled)
-                .onChange(of: soundRepeatCount) { _, newValue in
-                    if soundEnabled {
-                        previewSound(selectedSound, repeatCount: newValue)
-                    }
+            }
+            .disabled(!soundEnabled)
+            .onChange(of: soundRepeatCount) { _, newValue in
+                if soundEnabled {
+                    previewSound(selectedSound, repeatCount: newValue)
                 }
-                Text("Number of times to play the sound")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
             }
         }
     }
