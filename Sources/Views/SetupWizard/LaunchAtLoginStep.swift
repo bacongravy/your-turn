@@ -16,8 +16,8 @@ struct LaunchAtLoginStep: View {
 
     var body: some View {
         WizardStepLayout(
-            title: "Launch at Login",
-            subtitle: "Would you like Your Turn to start automatically when you log in?",
+            title: "Enable Launch at Login",
+            subtitle: "Automatically start Your Turn when you log in to ensure you never miss a Claude\u{00A0}Code notification.",
             primaryButton: WizardButton(
                 label: "Continue",
                 action: {
@@ -29,11 +29,6 @@ struct LaunchAtLoginStep: View {
                 VStack(spacing: 12) {
                     Toggle("Launch at Login", isOn: $enableLaunchAtLogin)
                         .toggleStyle(.switch)
-
-                    Text("This ensures you never miss a Claude Code notification.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 40)
             }

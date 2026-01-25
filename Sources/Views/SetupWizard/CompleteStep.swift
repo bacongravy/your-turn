@@ -40,16 +40,16 @@ struct CompleteStep: View {
             // Terminal.app (always shown - built into macOS)
             SummaryRow(
                 enabled: status.terminalAppConfigured,
-                enabledText: "macOS Terminal integration configured",
-                disabledText: "macOS Terminal integration not configured"
+                enabledText: "macOS Terminal automation enabled",
+                disabledText: "macOS Terminal automation not enabled"
             )
 
             // iTerm row only if iTerm is installed
             if isITermInstalled {
                 SummaryRow(
                     enabled: status.iTermConfigured,
-                    enabledText: "iTerm integration configured",
-                    disabledText: "iTerm integration not configured"
+                    enabledText: "iTerm automation enabled",
+                    disabledText: "iTerm automation not enabled"
                 )
             }
 

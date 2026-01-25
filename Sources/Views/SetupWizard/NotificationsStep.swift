@@ -38,7 +38,7 @@ struct NotificationsStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Enable Notifications",
-            subtitle: "Your Turn uses macOS notifications to alert you when Claude Code needs your attention.",
+            subtitle: "Your Turn uses macOS notifications to alert you when Claude\u{00A0}Code needs your attention.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryAction,

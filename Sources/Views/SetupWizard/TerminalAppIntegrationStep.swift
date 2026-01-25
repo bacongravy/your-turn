@@ -26,7 +26,7 @@ struct TerminalAppIntegrationStep: View {
         case .denied, .error:
             return "Open Automation Settings"
         case .none:
-            return "Enable Automation"
+            return "Enable Terminal Automation"
         }
     }
 
@@ -43,8 +43,8 @@ struct TerminalAppIntegrationStep: View {
 
     var body: some View {
         WizardStepLayout(
-            title: "macOS Terminal",
-            subtitle: "To focus the right terminal tab when you click a notification, Your Turn needs automation access.",
+            title: "Enable macOS Terminal Automation",
+            subtitle: "Your Turn uses automation to focus the macOS Terminal tab that needs attention when you click a notification.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryAction,

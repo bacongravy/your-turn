@@ -38,7 +38,7 @@ struct HooksStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Install Claude Code Hooks",
-            subtitle: "Your Turn needs to install hooks that tell it when Claude Code is waiting for input or has finished a task.",
+            subtitle: "Your Turn uses hooks to know when Claude\u{00A0}Code is waiting for input or has finished a task.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryButtonAction,

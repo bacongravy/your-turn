@@ -27,7 +27,7 @@ struct ITermIntegrationStep: View {
         case .denied, .error:
             return "Open Automation Settings"
         case .none:
-            return "Enable Automation"
+            return "Enable iTerm Automation"
         }
     }
 
@@ -44,8 +44,8 @@ struct ITermIntegrationStep: View {
 
     var body: some View {
         WizardStepLayout(
-            title: "iTerm Integration",
-            subtitle: "To focus the right terminal session when you click a notification, Your Turn needs automation access.",
+            title: "Enable iTerm Automation",
+            subtitle: "Your Turn uses automation to focus the iTerm terminal session that needs attention when you click a notification.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryAction,
