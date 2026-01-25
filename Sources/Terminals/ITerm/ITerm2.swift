@@ -76,6 +76,7 @@ enum ITerm2 {
 
     /// Focus a specific iTerm2 session by its unique ID.
     /// Falls back to activating iTerm2 without session focus if session not found.
+    /// Falls back to simple activation if automation permission is denied.
     /// - Parameter termSessionId: The TERM_SESSION_ID value (format: wXtYpZ:UUID)
     static func focusSession(_ termSessionId: String) {
         guard isRunning() else {
@@ -110,7 +111,16 @@ enum ITerm2 {
                 return false
             end tell
             """
-        AppleScriptRunner.executeScript(script)
+        let (_, error) = AppleScriptRunner.executeScript(script)
+
+        // Fall back to simple activation if automation permission denied
+        if let error = error,
+           let errorNumber = error[NSAppleScript.errorNumber] as? Int,
+           errorNumber == AppleScriptRunner.automationDeniedErrorCode
+        {
+            logger.info("Automation permission denied for session focus, falling back to app activation")
+            AppleScriptRunner.activateApp("iTerm2")
+        }
     }
 
     // MARK: - Smart Suppression

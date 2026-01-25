@@ -110,6 +110,7 @@ enum TerminalApp {
 
     /// Focus a specific Terminal.app tab by its tty.
     /// Falls back to activating Terminal.app without tab focus if tab not found.
+    /// Falls back to simple activation if automation permission is denied.
     /// - Parameter tty: The tty path (e.g., "/dev/ttys001")
     static func focusTab(tty: String) {
         guard isRunning() else {
@@ -134,7 +135,16 @@ enum TerminalApp {
                 return false
             end tell
             """
-        AppleScriptRunner.executeScript(script)
+        let (_, error) = AppleScriptRunner.executeScript(script)
+
+        // Fall back to simple activation if automation permission denied
+        if let error = error,
+           let errorNumber = error[NSAppleScript.errorNumber] as? Int,
+           errorNumber == AppleScriptRunner.automationDeniedErrorCode
+        {
+            logger.info("Automation permission denied for tab focus, falling back to app activation")
+            AppleScriptRunner.activateApp("Terminal")
+        }
     }
 
     // MARK: - Automation Permissions
