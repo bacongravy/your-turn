@@ -202,7 +202,11 @@ class SocketServer: ObservableObject {
 
         do {
             let event = try JSONDecoder().decode(HookEvent.self, from: data)
-            logger.info("Received event: \(event.hookEventName) for session \(event.sessionId)")
+            var eventName = event.hookEventName
+            if let notificationType = event.notificationType {
+                eventName += ".\(notificationType)"
+            }
+            logger.info("Received event: \(eventName) for session \(event.sessionId)")
             self.lastEvent = event
         } catch {
             // Log and ignore malformed JSON per CONTEXT.md decision

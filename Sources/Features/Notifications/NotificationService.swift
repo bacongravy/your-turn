@@ -149,7 +149,6 @@ class NotificationService: ObservableObject {
 
     // MARK: - Helpers
     private func bodyMessage(for event: HookEvent) -> String {
-        logger.debug("Event hook name: \(event.hookEventName)")
         switch event.hookEventName {
         case "Notification":
             switch event.notificationType {
