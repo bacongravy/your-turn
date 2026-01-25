@@ -67,7 +67,7 @@ struct HooksStep: View {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-                Text("Hooks installed successfully")
+                Text("Hooks are installed")
                     .foregroundStyle(.secondary)
             }
             .font(.body)
@@ -76,33 +76,24 @@ struct HooksStep: View {
                 HStack(spacing: 8) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.red)
-                    Text("Installation failed")
+                    Text("Hooks could not be installed")
                 }
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         } else {
-            Color.clear
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("Hooks are not installed")
+            }
         }
     }
 
     @ViewBuilder
     private var infoView: some View {
-        if !isInstalled && installError == nil {
-            VStack(spacing: 4) {
-                Text("This will:")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("- Add hooks to ~/.claude/settings.json")
-                Text("- Install a script in ~/.claude/hooks/")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-        } else {
-            Color.clear
-        }
+        Color.clear
     }
 
     private func installHooks() {

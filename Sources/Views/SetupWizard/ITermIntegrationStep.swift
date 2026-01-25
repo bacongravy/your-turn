@@ -97,7 +97,7 @@ struct ITermIntegrationStep: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                    Text("Automation enabled")
+                    Text("Automation is enabled")
                         .foregroundStyle(.secondary)
                 }
                 .font(.body)
@@ -109,7 +109,11 @@ struct ITermIntegrationStep: View {
                 }
             }
         } else {
-            Color.clear
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("Automation is not enabled")
+            }
         }
     }
 
@@ -120,7 +124,7 @@ struct ITermIntegrationStep: View {
                 Image(systemName: "arrow.up.forward.app")
                     .foregroundStyle(.blue)
                     .font(.caption)
-                Text("Your Turn will still activate the app when Claude needs attention.")
+                Text("Your Turn will still activate the app when Claude Code needs attention.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

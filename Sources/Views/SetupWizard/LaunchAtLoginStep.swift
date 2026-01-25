@@ -30,7 +30,7 @@ struct LaunchAtLoginStep: View {
                     Toggle("Launch at Login", isOn: $enableLaunchAtLogin)
                         .toggleStyle(.switch)
 
-                    Text("This ensures you never miss a Claude notification.")
+                    Text("This ensures you never miss a Claude Code notification.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

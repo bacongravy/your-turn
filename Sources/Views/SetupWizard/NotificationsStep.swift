@@ -38,7 +38,7 @@ struct NotificationsStep: View {
     var body: some View {
         WizardStepLayout(
             title: "Enable Notifications",
-            subtitle: "Your Turn uses macOS notifications to alert you when Claude needs your attention.",
+            subtitle: "Your Turn uses macOS notifications to alert you when Claude Code needs your attention.",
             primaryButton: WizardButton(
                 label: primaryButtonLabel,
                 action: primaryAction,
@@ -90,7 +90,7 @@ struct NotificationsStep: View {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-                Text("Notifications enabled")
+                Text("Notifications are enabled")
                     .foregroundStyle(.secondary)
             }
             .font(.body)
@@ -113,7 +113,7 @@ struct NotificationsStep: View {
                 Image(systemName: "speaker.wave.2.fill")
                     .foregroundStyle(.blue)
                     .font(.caption)
-                Text("Your Turn will still generate audio alerts when Claude needs attention.")
+                Text("Your Turn will still generate audio alerts when Claude Code needs attention.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
