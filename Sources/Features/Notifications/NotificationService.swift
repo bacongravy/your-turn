@@ -36,7 +36,8 @@ class NotificationService: ObservableObject {
 
         // Check if this event type is enabled
         guard isEventTypeEnabled(for: event) else {
-            logger.debug("Event suppressed: \(self.eventTypeKey(for: event)) is disabled")
+            let key = eventTypeKey(for: event) ?? "unknown"
+            logger.debug("Event suppressed: \(key) is disabled or unknown")
             return
         }
 
@@ -67,15 +68,15 @@ class NotificationService: ObservableObject {
     // MARK: - Event Filtering
 
     private func isEventTypeEnabled(for event: HookEvent) -> Bool {
-        let key = eventTypeKey(for: event)
+        guard let key = eventTypeKey(for: event) else {
+            return false  // Unknown event types are disabled
+        }
 
-        // Default values: taskComplete/inputNeeded enabled, idle disabled
+        // Default values: taskComplete/inputNeeded enabled
         let defaultValue: Bool
         switch key {
         case "notify.taskComplete", "notify.inputNeeded":
             defaultValue = true
-        case "notify.idle":
-            defaultValue = false
         default:
             defaultValue = true
         }
@@ -168,21 +169,20 @@ class NotificationService: ObservableObject {
         }
     }
 
-    private func eventTypeKey(for event: HookEvent) -> String {
+    private func eventTypeKey(for event: HookEvent) -> String? {
         switch event.hookEventName {
         case "Notification":
             switch event.notificationType {
             case "permission_prompt", "elicitation_dialog":
                 return "notify.inputNeeded"
-            case "idle_prompt":
-                return "notify.idle"
+            // idle_prompt appears broken in Claude Code (GitHub issue #8320 closed as "not planned")
             default:
-                return "notify.inputNeeded"
+                return nil  // Unknown notification types are ignored
             }
         case "Stop":
             return "notify.taskComplete"
         default:
-            return "notify.inputNeeded"
+            return nil  // Unknown hook events are ignored
         }
     }
 

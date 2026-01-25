@@ -4,9 +4,10 @@
 #
 # Usage:
 #   ./Scripts/test-socket.sh                    # Send permission_prompt event
-#   ./Scripts/test-socket.sh input              # Send permission_prompt event
+#   ./Scripts/test-socket.sh permission         # Send permission_prompt event
+#   ./Scripts/test-socket.sh input              # Send permission_prompt event (alias)
 #   ./Scripts/test-socket.sh mcp                # Send elicitation_dialog event
-#   ./Scripts/test-socket.sh idle               # Send idle_prompt event
+#   ./Scripts/test-socket.sh idle               # Send idle_prompt event (ignored by app)
 #   ./Scripts/test-socket.sh stop               # Send Stop event
 #   ./Scripts/test-socket.sh --help             # Show usage
 #
@@ -26,9 +27,10 @@ usage() {
     echo "Usage: $0 [event_type]"
     echo ""
     echo "Event types:"
-    echo "  input         Send permission_prompt event (default)"
+    echo "  permission    Send permission_prompt event (default)"
+    echo "  input         Alias for permission"
     echo "  mcp           Send elicitation_dialog event (MCP tool input)"
-    echo "  idle          Send idle_prompt event (60s waiting)"
+    echo "  idle          Send idle_prompt event (ignored by app)"
     echo "  stop          Send Stop event (task complete)"
     echo ""
     echo "Options:"
@@ -39,9 +41,10 @@ usage() {
     echo "  TERM_SESSION_ID   Terminal session ID (default: test-term-session)"
     echo ""
     echo "Examples:"
-    echo "  $0                              # Send input event (iTerm.app)"
+    echo "  $0 permission                   # Send permission_prompt event"
     echo "  $0 mcp                          # Send MCP elicitation event"
-    echo "  $0 idle                         # Send idle prompt event"
+    echo "  $0 idle                         # Send idle_prompt (ignored by app)"
+    echo "  $0 stop                         # Send task complete event"
     echo "  TERM_PROGRAM=Apple_Terminal $0  # Test Terminal.app activation"
     echo "  TERM_PROGRAM=WarpTerminal $0    # Test Warp activation"
 }
@@ -80,14 +83,14 @@ CWD="${PWD}"
 PROJECT_NAME=$(basename "$CWD")
 
 # Parse arguments
-EVENT_TYPE="${1:-input}"
+EVENT_TYPE="${1:-permission}"
 
 case "$EVENT_TYPE" in
     --help|-h)
         usage
         exit 0
         ;;
-    input)
+    permission|input)
         check_socket
         JSON=$(cat <<EOF
 {

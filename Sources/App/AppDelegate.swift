@@ -26,8 +26,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             "notify.sound": "Sosumi.aiff",
             "notify.soundRepeatCount": 1,
             "notify.taskComplete": true,
-            "notify.inputNeeded": true,
-            "notify.idle": false
+            "notify.inputNeeded": true
+            // idle_prompt appears broken in Claude Code (GitHub issue #8320 closed as "not planned")
+            // "notify.idle": false
         ])
 
         // Set notification delegate early, before any notifications are posted

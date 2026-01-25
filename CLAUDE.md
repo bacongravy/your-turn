@@ -56,8 +56,7 @@ Sources/
 │   │   ├── GeneralSection.swift        # Launch at login settings
 │   │   ├── NotificationSection.swift   # Sound preferences
 │   │   ├── EventsSection.swift         # Per-event toggles
-│   │   ├── HealthStatusSection.swift   # Health display
-│   │   └── AboutSection.swift          # App version info
+│   │   └── HealthStatusSection.swift   # Health display
 │   ├── SetupWizard/
 │   │   ├── SetupWizardView.swift       # Wizard container
 │   │   ├── WizardStepLayout.swift      # Common step layout
@@ -94,7 +93,6 @@ Sources/
 | `notify.soundRepeatCount` | Int | 1 | Times to play sound (1-5) |
 | `notify.taskComplete` | Bool | true | Notify on task complete (Stop) |
 | `notify.inputNeeded` | Bool | true | Notify when input needed (permission_prompt, elicitation_dialog) |
-| `notify.idle` | Bool | false | Notify after 60s idle (idle_prompt) |
 
 ## Development
 
@@ -123,7 +121,7 @@ Utility scripts in `Scripts/`:
 |--------|-------|-------------|
 | `build.sh` | `./Scripts/build.sh [command]` | **Primary build script** - always use this instead of xcodebuild directly |
 | `debug.sh` | (called by build.sh) | Launch app in lldb with auto-run |
-| `test-socket.sh` | `./Scripts/test-socket.sh` | Send test events to the Unix socket |
+| `test-socket.sh` | `./Scripts/test-socket.sh [event]` | Send test events (permission, mcp, idle, stop) |
 | `reset-for-testing.sh` | `./Scripts/reset-for-testing.sh` | Reset app state for fresh testing |
 | `generate-menu-icon.swift` | `swift Scripts/generate-menu-icon.swift` | Generate menu bar icon assets |
 
