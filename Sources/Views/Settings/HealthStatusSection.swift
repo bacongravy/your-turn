@@ -12,6 +12,7 @@ struct HealthStatusSection: View {
     @StateObject private var healthService = HealthCheckService()
     @AppStorage("setupComplete") private var setupComplete = true
     @State private var isITermInstalled = false
+    @State private var showNotificationGuidance = false
 
     var socketServer: SocketServer = .shared
 
@@ -37,8 +38,10 @@ struct HealthStatusSection: View {
             HealthCheckRow(
                 title: "Notifications",
                 state: healthService.status.notifications,
-                onRepairAction: healthService.repairNotifications,
-                onAction: healthService.repairNotifications
+                onRepairAction: { showNotificationGuidance = true },
+                actionLabel: "Open Notification Settings",
+                onAction: healthService.repairNotifications,
+                
             )
             // Always show Terminal.app integration (built into macOS)
             HealthCheckRow(
@@ -70,6 +73,12 @@ struct HealthStatusSection: View {
             // Re-check when returning from System Settings
             Task {
                 await healthService.checkAll()
+            }
+        }
+        .sheet(isPresented: $showNotificationGuidance) {
+            NotificationGuidanceSheet {
+                showNotificationGuidance = false
+                healthService.repairNotifications()
             }
         }
     }

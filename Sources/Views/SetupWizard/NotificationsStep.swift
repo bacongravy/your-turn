@@ -16,6 +16,7 @@ struct NotificationsStep: View {
     @State private var isRequesting = false
     @State private var authorizationStatus: UNAuthorizationStatus?
     @State private var showDeniedMessage = false
+    @State private var showGuidanceSheet = false
 
     private let appDidBecomeActive = NotificationCenter.default.publisher(
         for: NSApplication.didBecomeActiveNotification
@@ -39,7 +40,7 @@ struct NotificationsStep: View {
                     }
                     .font(.body)
                 } else if showDeniedMessage {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 8) {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundStyle(.orange)
@@ -47,17 +48,22 @@ struct NotificationsStep: View {
                         }
 
                         Button("Open Notification Settings") {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
-                                NSWorkspace.shared.open(url)
-                            }
+                            showGuidanceSheet = true
                         }
                         .buttonStyle(.bordered)
 
-                        Text("You can continue without notifications, but you won't receive alerts.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
+                        // Fallback reassurance
+                        HStack(spacing: 6) {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .foregroundStyle(.blue)
+                                .font(.caption)
+                            Text("Your Turn will still generate audio alerts when Claude needs attention.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                     }
                 } else {
                     Button {
@@ -82,6 +88,14 @@ struct NotificationsStep: View {
         }
         .onReceive(appDidBecomeActive) { _ in
             checkCurrentStatus()
+        }
+        .sheet(isPresented: $showGuidanceSheet) {
+            NotificationGuidanceSheet {
+                showGuidanceSheet = false
+                if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
         }
     }
 
