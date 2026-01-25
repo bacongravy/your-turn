@@ -11,7 +11,6 @@ import UserNotifications
 /// Notifications permission step - request notification access
 struct NotificationsStep: View {
     let onContinue: (Bool) -> Void  // Reports whether notifications were enabled
-    let onBack: () -> Void
 
     @State private var isRequesting = false
     @State private var authorizationStatus: UNAuthorizationStatus?
@@ -22,67 +21,36 @@ struct NotificationsStep: View {
         for: NSApplication.didBecomeActiveNotification
     )
 
+    private var primaryButtonLabel: String {
+        if authorizationStatus == .authorized {
+            return "Continue"
+        } else if showDeniedMessage {
+            return "Open Notification Settings"
+        } else {
+            return "Enable Notifications"
+        }
+    }
+
+    private var showSkipButton: Bool {
+        showDeniedMessage
+    }
+
     var body: some View {
         WizardStepLayout(
             title: "Enable Notifications",
             subtitle: "Your Turn uses macOS notifications to alert you when Claude needs your attention.",
-            onBack: onBack,
-            onContinue: { onContinue(authorizationStatus == .authorized) },
-            continueLabel: continueButtonLabel
-        ) {
-            VStack(spacing: 12) {
-                if authorizationStatus == .authorized {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Notifications enabled")
-                            .foregroundStyle(.secondary)
-                    }
-                    .font(.body)
-                } else if showDeniedMessage {
-                    VStack(spacing: 16) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                            Text("Notifications are disabled")
-                        }
-
-                        Button("Open Notification Settings") {
-                            showGuidanceSheet = true
-                        }
-                        .buttonStyle(.bordered)
-
-                        // Fallback reassurance
-                        HStack(spacing: 6) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .foregroundStyle(.blue)
-                                .font(.caption)
-                            Text("Your Turn will still generate audio alerts when Claude needs attention.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                    }
-                } else {
-                    Button {
-                        requestNotifications()
-                    } label: {
-                        if isRequesting {
-                            ProgressView()
-                                .controlSize(.small)
-                                .padding(.horizontal, 8)
-                        } else {
-                            Text("Enable Notifications")
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(isRequesting)
-                }
-            }
-        }
+            primaryButton: WizardButton(
+                label: primaryButtonLabel,
+                action: primaryAction,
+                isDisabled: isRequesting
+            ),
+            skipButton: showSkipButton ? WizardButton(
+                label: "Skip",
+                action: { onContinue(false) }
+            ) : nil,
+            statusContent: { statusView },
+            infoContent: { infoView }
+        )
         .onAppear {
             checkCurrentStatus()
         }
@@ -99,13 +67,61 @@ struct NotificationsStep: View {
         }
     }
 
-    private var continueButtonLabel: String {
+    private func primaryAction() {
         if authorizationStatus == .authorized {
-            return "Continue"
+            onContinue(true)
         } else if showDeniedMessage {
-            return "Skip"
+            showGuidanceSheet = true
         } else {
-            return "Continue"
+            requestNotifications()
+        }
+    }
+
+    @ViewBuilder
+    private var statusView: some View {
+        if isRequesting {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Requesting permission...")
+                    .foregroundStyle(.secondary)
+            }
+        } else if authorizationStatus == .authorized {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("Notifications enabled")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.body)
+        } else if showDeniedMessage {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("Notifications are disabled")
+            }
+        } else {
+            Color.clear
+        }
+    }
+
+    @ViewBuilder
+    private var infoView: some View {
+        if showDeniedMessage {
+            // Audio fallback message
+            HStack(spacing: 6) {
+                Image(systemName: "speaker.wave.2.fill")
+                    .foregroundStyle(.blue)
+                    .font(.caption)
+                Text("Your Turn will still generate audio alerts when Claude needs attention.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+        } else {
+            Color.clear
         }
     }
 
@@ -137,6 +153,6 @@ struct NotificationsStep: View {
 }
 
 #Preview {
-    NotificationsStep(onContinue: { _ in }, onBack: {})
+    NotificationsStep(onContinue: { _ in })
         .frame(width: 500, height: 340)
 }

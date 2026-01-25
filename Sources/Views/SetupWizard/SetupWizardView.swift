@@ -86,38 +86,34 @@ struct SetupWizardView: View {
         case .welcome:
             WelcomeStep(onContinue: nextStep)
         case .hooks:
-            HooksStep(onContinue: nextStep, onBack: prevStep)
+            HooksStep(onContinue: nextStep)
         case .notifications:
             NotificationsStep(
                 onContinue: { enabled in
                     status.notificationsEnabled = enabled
                     nextStep()
-                },
-                onBack: prevStep
+                }
             )
         case .terminalApp:
             TerminalAppIntegrationStep(
                 onContinue: { configured in
                     status.terminalAppConfigured = configured
                     nextStep()
-                },
-                onBack: prevStep
+                }
             )
         case .iTerm:
             ITermIntegrationStep(
                 onContinue: { configured in
                     status.iTermConfigured = configured
                     nextStep()
-                },
-                onBack: prevStep
+                }
             )
         case .launchAtLogin:
             LaunchAtLoginStep(
                 onContinue: { enabled in
                     status.launchAtLoginEnabled = enabled
                     nextStep()
-                },
-                onBack: prevStep
+                }
             )
         case .complete:
             CompleteStep(
@@ -132,14 +128,6 @@ struct SetupWizardView: View {
         if currentStep < steps.count - 1 {
             withAnimation(.easeInOut(duration: 0.2)) {
                 currentStep += 1
-            }
-        }
-    }
-
-    private func prevStep() {
-        if currentStep > 0 {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                currentStep -= 1
             }
         }
     }

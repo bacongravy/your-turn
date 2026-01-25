@@ -10,7 +10,6 @@ import SwiftUI
 /// Hooks installation step - installs Claude Code hooks
 struct HooksStep: View {
     let onContinue: () -> Void
-    let onBack: () -> Void
 
     @State private var isInstalling = false
     @State private var isInstalled = false
@@ -18,72 +17,91 @@ struct HooksStep: View {
 
     private let hookInstaller = HookInstaller()
 
+    private var primaryButtonLabel: String {
+        if isInstalled {
+            return "Continue"
+        } else if installError != nil {
+            return "Retry"
+        } else {
+            return "Install Hooks"
+        }
+    }
+
+    private var primaryButtonAction: () -> Void {
+        if isInstalled {
+            return onContinue
+        } else {
+            return installHooks
+        }
+    }
+
     var body: some View {
         WizardStepLayout(
             title: "Install Claude Code Hooks",
             subtitle: "Your Turn needs to install hooks that tell it when Claude Code is waiting for input or has finished a task.",
-            onBack: onBack,
-            onContinue: onContinue,
-            continueDisabled: !isInstalled
-        ) {
-            VStack(spacing: 12) {
-                if isInstalled {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Hooks installed successfully")
-                            .foregroundStyle(.secondary)
-                    }
-                    .font(.body)
-                } else if let error = installError {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.red)
-                            Text("Installation failed")
-                        }
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button("Retry") {
-                        installHooks()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isInstalling)
-                } else {
-                    Button {
-                        installHooks()
-                    } label: {
-                        if isInstalling {
-                            ProgressView()
-                                .controlSize(.small)
-                                .padding(.horizontal, 8)
-                        } else {
-                            Text("Install Hooks")
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(isInstalling)
-
-                    // Info text below button - hidden when installed
-                    VStack(spacing: 4) {
-                        Text("→ Adds hooks to ~/.claude/settings.json")
-                        Text("→ Installs a hook script in ~/.claude/hooks/")
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 8)
-                }
-            }
-        }
+            primaryButton: WizardButton(
+                label: primaryButtonLabel,
+                action: primaryButtonAction,
+                isDisabled: isInstalling
+            ),
+            statusContent: { statusView },
+            infoContent: { infoView }
+        )
         .onAppear {
             if hookInstaller.isInstalled() {
                 isInstalled = true
             }
+        }
+    }
+
+    @ViewBuilder
+    private var statusView: some View {
+        if isInstalling {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Installing hooks...")
+                    .foregroundStyle(.secondary)
+            }
+        } else if isInstalled {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("Hooks installed successfully")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.body)
+        } else if let error = installError {
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                    Text("Installation failed")
+                }
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Color.clear
+        }
+    }
+
+    @ViewBuilder
+    private var infoView: some View {
+        if !isInstalled && installError == nil {
+            VStack(spacing: 4) {
+                Text("This will:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("- Add hooks to ~/.claude/settings.json")
+                Text("- Install a script in ~/.claude/hooks/")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+        } else {
+            Color.clear
         }
     }
 
@@ -109,6 +127,6 @@ struct HooksStep: View {
 }
 
 #Preview {
-    HooksStep(onContinue: {}, onBack: {})
+    HooksStep(onContinue: {})
         .frame(width: 500, height: 340)
 }

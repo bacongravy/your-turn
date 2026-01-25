@@ -14,68 +14,54 @@ struct CompleteStep: View {
     let status: WizardStatus
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        WizardStepLayout(
+            title: "You're All Set!",
+            subtitle: "",
+            icon: .systemImage("checkmark.circle.fill", .green),
+            primaryButton: WizardButton(label: "Start Using Your Turn", action: onFinish),
+            infoContent: {
+                summaryList
+            }
+        )
+    }
 
-            // Checkmark icon
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.green)
+    private var summaryList: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Hooks always succeed (can't continue without them)
+            SummaryRow(enabled: true, enabledText: "Claude Code hooks installed", disabledText: "")
 
-            // Title
-            Text("You're All Set!")
-                .font(.title)
-                .fontWeight(.bold)
+            // Notifications
+            SummaryRow(
+                enabled: status.notificationsEnabled,
+                enabledText: "Notifications enabled",
+                disabledText: "Notifications not enabled"
+            )
 
-            // Summary
-            VStack(alignment: .leading, spacing: 8) {
-                // Hooks always succeed (can't continue without them)
-                SummaryRow(enabled: true, enabledText: "Claude Code hooks installed", disabledText: "")
+            // Terminal.app (always shown - built into macOS)
+            SummaryRow(
+                enabled: status.terminalAppConfigured,
+                enabledText: "macOS Terminal integration configured",
+                disabledText: "macOS Terminal integration not configured"
+            )
 
-                // Notifications
+            // iTerm row only if iTerm is installed
+            if isITermInstalled {
                 SummaryRow(
-                    enabled: status.notificationsEnabled,
-                    enabledText: "Notifications enabled",
-                    disabledText: "Notifications not enabled"
-                )
-
-                // Terminal.app (always shown - built into macOS)
-                SummaryRow(
-                    enabled: status.terminalAppConfigured,
-                    enabledText: "macOS Terminal integration configured",
-                    disabledText: "macOS Terminal integration not configured"
-                )
-
-                // iTerm row only if iTerm is installed
-                if isITermInstalled {
-                    SummaryRow(
-                        enabled: status.iTermConfigured,
-                        enabledText: "iTerm integration configured",
-                        disabledText: "iTerm integration not configured"
-                    )
-                }
-
-                // Launch at login
-                SummaryRow(
-                    enabled: status.launchAtLoginEnabled,
-                    enabledText: "Launch at login enabled",
-                    disabledText: "Launch at login not enabled"
+                    enabled: status.iTermConfigured,
+                    enabledText: "iTerm integration configured",
+                    disabledText: "iTerm integration not configured"
                 )
             }
-            .padding(.horizontal, 40)
 
-            Spacer()
-
-            // Finish button
-            Button("Start Using Your Turn") {
-                onFinish()
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-
-            Spacer()
+            // Launch at login
+            SummaryRow(
+                enabled: status.launchAtLoginEnabled,
+                enabledText: "Launch at login enabled",
+                disabledText: "Launch at login not enabled"
+            )
         }
-        .padding()
+        .padding(.horizontal, 40)
+        .padding(.top, -32)
     }
 }
 
@@ -91,7 +77,7 @@ private struct SummaryRow: View {
                 .foregroundStyle(enabled ? .green : .red)
                 .font(.caption)
             Text(enabled ? enabledText : disabledText)
-                .font(.body)
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
