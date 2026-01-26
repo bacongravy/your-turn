@@ -6,7 +6,7 @@
 
 set -e
 
-BUNDLE_ID="net.bacongravy.Your-Turn"
+BUNDLE_ID="net.bacongravy.your-turn"
 SETTINGS_FILE="$HOME/.claude/settings.json"
 HOOK_SCRIPT="$HOME/.claude/hooks/your-turn-notify.sh"
 PLIST_FILE="$HOME/Library/Preferences/${BUNDLE_ID}.plist"
