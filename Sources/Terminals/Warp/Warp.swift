@@ -13,7 +13,7 @@ import os.log
 /// Centralized Warp terminal integration logic.
 /// All Warp-related functionality exposed as static functions.
 enum Warp {
-    private static let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "Warp")
+    private static let logger = Logger(category: "Warp")
 
     // MARK: - Constants
 

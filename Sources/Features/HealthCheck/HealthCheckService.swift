@@ -21,7 +21,7 @@ class HealthCheckService: ObservableObject {
     private let hookInstaller = HookInstaller()
     var socketServer: SocketServer = .shared
 
-    private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "HealthCheckService")
+    private let logger = Logger(category: "HealthCheckService")
 
     // MARK: - Health Checks
 

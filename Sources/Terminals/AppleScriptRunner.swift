@@ -29,7 +29,7 @@ enum AutomationResult: Equatable {
 /// Shared AppleScript execution utility.
 /// Provides consistent script execution and error handling across terminal integrations.
 enum AppleScriptRunner {
-    private static let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "AppleScriptRunner")
+    private static let logger = Logger(category: "AppleScriptRunner")
 
     /// Standard error code for automation permission denied
     static let automationDeniedErrorCode = -1743

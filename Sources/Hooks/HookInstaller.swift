@@ -32,7 +32,7 @@ class HookInstaller {
     private let settingsPath: URL
     private let hooksDir: URL
     private let scriptName = "your-turn-notify.sh"
-    private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "HookInstaller")
+    private let logger = Logger(category: "HookInstaller")
 
     init() {
         let home = FileManager.default.homeDirectoryForCurrentUser

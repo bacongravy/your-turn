@@ -19,8 +19,8 @@ class SocketServer: ObservableObject {
     private var serverSocket: Int32 = -1
     private var acceptSource: DispatchSourceRead?
     private let socketPath: URL
-    private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "SocketServer")
-    private let socketQueue = DispatchQueue(label: "net.bacongravy.Your-Turn.socket", qos: .utility)
+    private let logger = Logger(category: "SocketServer")
+    private let socketQueue = DispatchQueue(label: "SocketServer.serverSocket.read", qos: .utility)
 
     @Published private(set) var lastEvent: HookEvent?
     @Published private(set) var isRunning = false

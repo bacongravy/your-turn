@@ -13,7 +13,7 @@ import os.log
 /// Centralized Terminal.app integration logic.
 /// All Terminal.app-related functionality exposed as static functions.
 enum TerminalApp {
-    private static let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "TerminalApp")
+    private static let logger = Logger(category: "TerminalApp")
 
     // MARK: - Constants
 

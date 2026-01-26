@@ -13,7 +13,7 @@ import os.log
 /// Centralized iTerm2 integration logic.
 /// All iTerm-related functionality exposed as static functions.
 enum ITerm2 {
-    private static let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "ITerm2")
+    private static let logger = Logger(category: "ITerm2")
 
     // MARK: - Constants
 

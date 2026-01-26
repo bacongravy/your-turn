@@ -16,7 +16,7 @@ import os.log
 @MainActor
 class NotificationService: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
-    private let logger = Logger(subsystem: "net.bacongravy.Your-Turn", category: "NotificationService")
+    private let logger = Logger(category: "NotificationService")
 
     init(socketServer: SocketServer) {
         socketServer.$lastEvent
