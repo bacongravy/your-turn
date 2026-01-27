@@ -43,7 +43,15 @@ Click the notification and Your Turn brings your terminal directly to the sessio
 
 ## Installation
 
-### Download
+### Homebrew (Recommended)
+
+1. Install via Homebrew:
+   ```bash
+   brew install --cask bacongravy/tap/your-turn
+   ```
+2. Launch the app and follow the setup wizard
+
+### Manual Download
 
 1. Download the latest release from the [Releases](https://github.com/bacongravy/your-turn/releases) page
 2. Move `Your Turn.app` to your Applications folder
