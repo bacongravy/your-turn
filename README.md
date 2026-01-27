@@ -154,6 +154,20 @@ This creates a gitignored `Local.xcconfig` file with your team ID.
 ./Scripts/reset-for-testing.sh
 ```
 
+### Releasing
+
+To create a notarized release for distribution:
+
+```bash
+# One-time setup: store notarization credentials
+./Scripts/store-notary-credentials.sh
+
+# Build, notarize, and create distribution ZIP
+./Scripts/build.sh notarize
+```
+
+Output: `./build/Build/Products/Release/Your-Turn.zip`
+
 ### Project Structure
 
 ```

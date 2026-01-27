@@ -7,6 +7,7 @@
 #   ./Scripts/build.sh run          # Build and launch app
 #   ./Scripts/build.sh debug        # Build and launch with lldb
 #   ./Scripts/build.sh release      # Build Release configuration
+#   ./Scripts/build.sh notarize     # Build, notarize, and create distribution ZIP
 #   ./Scripts/build.sh clean        # Remove build directory
 #   ./Scripts/build.sh help         # Show usage
 #
@@ -33,6 +34,7 @@ usage() {
     echo "  run       Build and launch app"
     echo "  debug     Build and launch with lldb"
     echo "  release   Build Release configuration"
+    echo "  notarize  Build, notarize, and create distribution ZIP"
     echo "  clean     Remove build directory"
     echo "  help      Show this help message"
     echo ""
@@ -41,6 +43,7 @@ usage() {
     echo "  $0 run            # Build and launch"
     echo "  $0 debug          # Build and attach debugger"
     echo "  $0 release        # Build for release"
+    echo "  $0 notarize       # Create notarized distribution"
     echo "  $0 clean          # Clean build artifacts"
 }
 
@@ -107,6 +110,43 @@ case "$COMMAND" in
         APP_PATH="$BUILD_DIR/Build/Products/Release/Your Turn.app"
         build
         echo -e "${GREEN}Release build complete:${NC} $APP_PATH"
+        ;;
+    notarize)
+        CONFIG="Release"
+        APP_PATH="$BUILD_DIR/Build/Products/Release/Your Turn.app"
+        ZIP_PATH="$BUILD_DIR/Build/Products/Release/Your-Turn.zip"
+        NOTARY_PROFILE="${NOTARY_PROFILE:-your-turn-notary}"
+
+        # Build
+        build
+        echo -e "${GREEN}Release build complete${NC}"
+
+        # Create ZIP
+        echo "Creating ZIP for notarization..."
+        rm -f "$ZIP_PATH"
+        ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
+
+        # Submit for notarization
+        echo "Submitting for notarization..."
+        xcrun notarytool submit "$ZIP_PATH" \
+            --keychain-profile "$NOTARY_PROFILE" \
+            --wait
+
+        # Staple
+        echo "Stapling notarization ticket..."
+        xcrun stapler staple "$APP_PATH"
+
+        # Re-zip with stapled app
+        echo "Creating final ZIP..."
+        rm -f "$ZIP_PATH"
+        ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
+
+        # Verify
+        echo "Verifying..."
+        spctl --assess --type exec -vv "$APP_PATH"
+
+        echo ""
+        echo -e "${GREEN}Notarized ZIP ready:${NC} $ZIP_PATH"
         ;;
     clean)
         rm -rf "$BUILD_DIR"
