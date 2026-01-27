@@ -38,7 +38,7 @@ Click the notification and Your Turn brings your terminal directly to the sessio
 
 ## Requirements
 
-- macOS 15.0 (Sequoia) or later
+- macOS 14.0 (Sonoma) or later
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed
 
 ## Installation
@@ -118,7 +118,7 @@ Claude Code Hook → Shell Script → Unix Socket → Your Turn → macOS Notifi
 ### Prerequisites
 
 - Xcode 16.0 or later
-- macOS 15.0 or later
+- macOS 14.0 or later
 
 ### Building
 
