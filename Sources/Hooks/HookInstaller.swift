@@ -53,7 +53,7 @@ class HookInstaller {
 
             logger.info("Hook installation complete")
         } catch {
-            logger.error("Hook installation failed: \(error.localizedDescription)")
+            logger.error("Hook installation failed: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -68,7 +68,6 @@ class HookInstaller {
         let scriptPath = hooksDir.appendingPathComponent(scriptName)
         if fm.fileExists(atPath: scriptPath.path) {
             try fm.removeItem(at: scriptPath)
-            logger.debug("Removed hook script")
         }
 
         // Remove our hooks from settings.json
@@ -104,7 +103,6 @@ class HookInstaller {
                     options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
                 )
                 try outputData.write(to: settingsPath)
-                logger.debug("Removed our hooks from settings.json")
             }
         }
 
@@ -137,7 +135,7 @@ class HookInstaller {
             logger.info("Updated hook script to new version")
             return true
         } catch {
-            logger.error("Failed to update hook script: \(error.localizedDescription)")
+            logger.error("Failed to update hook script: \(error.localizedDescription, privacy: .public)")
             return false
         }
     }
@@ -184,7 +182,6 @@ class HookInstaller {
                 .appendingPathComponent("settings.json.backup")
             try? fm.removeItem(at: backupPath)
             try fm.copyItem(at: settingsPath, to: backupPath)
-            logger.debug("Created backup at \(backupPath.path)")
 
             let data = try Data(contentsOf: settingsPath)
             guard let parsed = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -193,7 +190,6 @@ class HookInstaller {
             settings = parsed
         } else {
             settings = [:]
-            logger.debug("Creating new settings.json")
         }
 
         // Merge our hooks
@@ -246,7 +242,7 @@ class HookInstaller {
             ofItemAtPath: scriptDest.path
         )
 
-        logger.info("Deployed hook script to \(scriptDest.path)")
+        logger.info("Deployed hook script")
     }
 
     /// Build our hook configuration for a single hook type

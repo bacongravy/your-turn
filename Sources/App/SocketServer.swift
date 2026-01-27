@@ -47,7 +47,7 @@ class SocketServer: ObservableObject {
             // Remove stale socket file (from crash recovery)
             try? FileManager.default.removeItem(at: socketPath)
 
-            logger.info("Socket server starting at \(self.socketPath.path)")
+            logger.info("Socket server starting")
 
             // Create Unix domain socket
             serverSocket = socket(AF_UNIX, SOCK_STREAM, 0)
@@ -114,7 +114,7 @@ class SocketServer: ObservableObject {
             error = nil
             logger.info("Socket server ready")
         } catch {
-            logger.error("Failed to start socket server: \(error.localizedDescription)")
+            logger.error("Failed to start socket server: \(error.localizedDescription, privacy: .public)")
             self.error = error
         }
     }
@@ -147,12 +147,10 @@ class SocketServer: ObservableObject {
 
         guard clientSocket >= 0 else {
             if errno != EWOULDBLOCK && errno != EAGAIN {
-                logger.error("Accept failed: \(String(cString: strerror(errno)))")
+                logger.error("Accept failed: \(String(cString: strerror(errno)), privacy: .public)")
             }
             return
         }
-
-        logger.debug("New connection accepted")
 
         // Handle connection in background
         socketQueue.async { [weak self] in
@@ -180,12 +178,10 @@ class SocketServer: ObservableObject {
                     usleep(1000) // 1ms
                     continue
                 }
-                logger.error("Read error: \(String(cString: strerror(errno)))")
+                logger.error("Read error: \(String(cString: strerror(errno)), privacy: .public)")
                 break
             }
         }
-
-        logger.debug("Connection complete, processing \(data.count) bytes")
 
         // Process on main actor
         let finalData = data
@@ -196,7 +192,7 @@ class SocketServer: ObservableObject {
 
     private func processMessage(_ data: Data) {
         guard !data.isEmpty else {
-            logger.debug("Empty message received, ignoring")
+            logger.warning("Empty message received, ignoring")
             return
         }
 
@@ -206,14 +202,14 @@ class SocketServer: ObservableObject {
             if let notificationType = event.notificationType {
                 eventName += ".\(notificationType)"
             }
-            logger.info("Received event: \(eventName) for session \(event.sessionId)")
+            logger.info("Received event: \(eventName, privacy: .public) for session \(event.sessionId, privacy: .public)")
             self.lastEvent = event
         } catch {
             // Log and ignore malformed JSON per CONTEXT.md decision
             if let jsonString = String(data: data, encoding: .utf8) {
-                logger.warning("Failed to parse hook event: \(error.localizedDescription). Raw: \(jsonString.prefix(200))")
+                logger.warning("Failed to parse hook event: \(error.localizedDescription, privacy: .public). Raw: \(jsonString.prefix(100))")
             } else {
-                logger.warning("Failed to parse hook event: \(error.localizedDescription). Data not UTF-8.")
+                logger.warning("Failed to parse hook event: \(error.localizedDescription, privacy: .public). Data not UTF-8.")
             }
         }
     }

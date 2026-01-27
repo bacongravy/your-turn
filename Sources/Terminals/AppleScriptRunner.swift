@@ -48,7 +48,12 @@ enum AppleScriptRunner {
         let result = script.executeAndReturnError(&errorInfo)
 
         if let error = errorInfo {
-            logger.debug("AppleScript error: \(error)")
+            let errorNumber = error[NSAppleScript.errorNumber] as? Int ?? 0
+            if errorNumber == automationDeniedErrorCode {
+                logger.debug("AppleScript error: permission denied")
+            } else {
+                logger.debug("AppleScript error: \(error)")
+            }
         }
 
         return (result, errorInfo)

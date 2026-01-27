@@ -26,7 +26,6 @@ class NotificationService: ObservableObject {
             }
             .store(in: &cancellables)
 
-        logger.info("NotificationService initialized and subscribed to socket events")
     }
 
     // MARK: - Event Handling
@@ -37,7 +36,7 @@ class NotificationService: ObservableObject {
         // Check if this event type is enabled
         guard isEventTypeEnabled(for: event) else {
             let key = eventTypeKey(for: event) ?? "unknown"
-            logger.debug("Event suppressed: \(key) is disabled or unknown")
+            logger.debug("Event suppressed: \(key, privacy: .public) is disabled or unknown")
             return
         }
 
@@ -86,12 +85,12 @@ class NotificationService: ObservableObject {
 
     private func shouldSmartSuppress(_ event: HookEvent) -> Bool {
         if ITerm2.shouldSuppressNotification(for: event) {
-            logger.debug("Event suppressed: user focused on iTerm session \(event.termSessionId ?? "unknown")")
+            logger.debug("Event suppressed: user focused on iTerm session \(event.termSessionId ?? "unknown", privacy: .public)")
             return true
         }
 
         if TerminalApp.shouldSuppressNotification(for: event) {
-            logger.debug("Event suppressed: user focused on Terminal.app tab \(event.tty ?? "unknown")")
+            logger.debug("Event suppressed: user focused on Terminal.app tab \(event.tty ?? "unknown", privacy: .public)")
             return true
         }
 
@@ -110,9 +109,9 @@ class NotificationService: ObservableObject {
 
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound])
-            logger.info("Notification authorization \(granted ? "granted" : "denied")")
+            logger.info("Notification authorization \(granted ? "granted" : "denied", privacy: .public)")
         } catch {
-            logger.error("Failed to request notification authorization: \(error.localizedDescription)")
+            logger.error("Failed to request notification authorization: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -142,9 +141,9 @@ class NotificationService: ObservableObject {
 
         do {
             try await UNUserNotificationCenter.current().add(request)
-            logger.info("Posted notification for session \(event.sessionId): \(content.body)")
+            logger.info("Posted notification: \(content.body, privacy: .public)")
         } catch {
-            logger.error("Failed to post notification: \(error.localizedDescription)")
+            logger.error("Failed to post notification: \(error.localizedDescription, privacy: .public)")
         }
     }
 

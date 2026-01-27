@@ -90,11 +90,7 @@ enum TerminalApp {
     /// Activate Terminal.app without focusing a specific tab.
     /// Used when tty is missing but termProgram indicates Terminal.
     static func activate() {
-        guard isRunning() else {
-            logger.debug("Terminal.app not running, skipping activation")
-            return
-        }
-
+        guard isRunning() else { return }
         AppleScriptRunner.activateApp("Terminal")
     }
 
@@ -113,10 +109,7 @@ enum TerminalApp {
     /// Falls back to simple activation if automation permission is denied.
     /// - Parameter tty: The tty path (e.g., "/dev/ttys001")
     static func focusTab(tty: String) {
-        guard isRunning() else {
-            logger.debug("Terminal.app not running, skipping focus")
-            return
-        }
+        guard isRunning() else { return }
 
         // AppleScript iterates all windows/tabs to find match by tty
         let script = """

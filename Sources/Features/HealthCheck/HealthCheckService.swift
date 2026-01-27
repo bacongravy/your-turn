@@ -28,8 +28,6 @@ class HealthCheckService: ObservableObject {
     /// Run all health checks and update status
     /// Note: Automation is NOT checked automatically (triggers permission dialog)
     func checkAll() async {
-        logger.debug("Running all health checks")
-
         status.socket = checkSocket()
         status.hooks = checkHooks()
         status.notifications = await checkNotifications()
@@ -44,7 +42,7 @@ class HealthCheckService: ObservableObject {
             await checkTerminalAppIntegrationStatus()
         }
 
-        logger.info("Health check complete: socket=\(String(describing: self.status.socket)), hooks=\(String(describing: self.status.hooks)), notifications=\(String(describing: self.status.notifications)), iTerm=\(String(describing: self.status.iTermIntegration)), terminal=\(String(describing: self.status.terminalAppIntegration))")
+        logger.info("Health check complete: socket=\(String(describing: self.status.socket), privacy: .public), hooks=\(String(describing: self.status.hooks), privacy: .public), notifications=\(String(describing: self.status.notifications), privacy: .public), iTerm=\(String(describing: self.status.iTermIntegration), privacy: .public), terminal=\(String(describing: self.status.terminalAppIntegration), privacy: .public)")
     }
 
     private func checkSocket() -> CheckState {
@@ -71,7 +69,6 @@ class HealthCheckService: ObservableObject {
     /// WARNING: This will show a permission dialog if not yet granted!
     /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
     func checkITermIntegrationStatus() async {
-        logger.info("Checking iTerm integration status")
         status.iTermIntegration = .checking
 
         await withCheckedContinuation { continuation in
@@ -83,7 +80,7 @@ class HealthCheckService: ObservableObject {
                     self.status.iTermIntegration = .failed
                 }
 
-                self.logger.info("iTerm integration check complete: \(String(describing: self.status.iTermIntegration))")
+                self.logger.info("iTerm integration check complete: \(String(describing: self.status.iTermIntegration), privacy: .public)")
                 continuation.resume()
             }
         }
@@ -93,7 +90,6 @@ class HealthCheckService: ObservableObject {
     /// WARNING: This will show a permission dialog if not yet granted!
     /// Only call this when user explicitly requests it (e.g., clicking "Check" button)
     func checkTerminalAppIntegrationStatus() async {
-        logger.info("Checking Terminal.app integration status")
         status.terminalAppIntegration = .checking
 
         await withCheckedContinuation { continuation in
@@ -105,7 +101,7 @@ class HealthCheckService: ObservableObject {
                     self.status.terminalAppIntegration = .failed
                 }
 
-                self.logger.info("Terminal.app integration check complete: \(String(describing: self.status.terminalAppIntegration))")
+                self.logger.info("Terminal.app integration check complete: \(String(describing: self.status.terminalAppIntegration), privacy: .public)")
                 continuation.resume()
             }
         }
@@ -115,8 +111,6 @@ class HealthCheckService: ObservableObject {
 
     /// Repair hooks by installing them
     func repairHooks() async {
-        logger.info("Attempting to repair hooks")
-
         // Check if already installed (skip if so)
         guard !hookInstaller.isInstalled() else {
             logger.info("Hooks already installed, skipping repair")
@@ -128,11 +122,9 @@ class HealthCheckService: ObservableObject {
             try hookInstaller.installHooks()
             status.hooks = .ok
         } catch {
-            logger.error("Hook repair failed: \(error.localizedDescription)")
+            logger.error("Hook repair failed: \(error.localizedDescription, privacy: .public)")
             status.hooks = .failed
         }
-
-        logger.info("Hooks repair complete: \(String(describing: self.status.hooks))")
     }
 
     /// Open notification settings in System Settings
@@ -144,7 +136,6 @@ class HealthCheckService: ObservableObject {
     }
     
     func repairITermIntegration() async {
-        logger.info("Attempting to repair iTerm integration")
         await checkITermIntegrationStatus()
 
         if self.status.iTermIntegration == .failed {
@@ -159,7 +150,6 @@ class HealthCheckService: ObservableObject {
     }
 
     func repairTerminalAppIntegration() async {
-        logger.info("Attempting to repair Terminal.app integration")
         await checkTerminalAppIntegrationStatus()
 
         if self.status.terminalAppIntegration == .failed {

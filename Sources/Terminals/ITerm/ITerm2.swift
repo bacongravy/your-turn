@@ -79,10 +79,7 @@ enum ITerm2 {
     /// Falls back to simple activation if automation permission is denied.
     /// - Parameter termSessionId: The TERM_SESSION_ID value (format: wXtYpZ:UUID)
     static func focusSession(_ termSessionId: String) {
-        guard isRunning() else {
-            logger.debug("iTerm2 not running, skipping focus")
-            return
-        }
+        guard isRunning() else { return }
 
         // Extract UUID from TERM_SESSION_ID format "wXtYpZ:UUID"
         // The wXtYpZ prefix encodes window/tab/pane position, but AppleScript
@@ -158,11 +155,7 @@ enum ITerm2 {
     /// Activate iTerm2 without focusing a specific session.
     /// Used when termSessionId is missing but termProgram indicates iTerm.
     static func activate() {
-        guard isRunning() else {
-            logger.debug("iTerm2 not running, skipping activation")
-            return
-        }
-
+        guard isRunning() else { return }
         AppleScriptRunner.activateApp("iTerm2")
     }
 
