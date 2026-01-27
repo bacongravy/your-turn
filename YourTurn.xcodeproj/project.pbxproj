@@ -20,6 +20,7 @@
 
 /* Begin PBXFileReference section */
 		A4C8A73A2F1F5AEA007C103D /* Your Turn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Your Turn.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4CF3BBC2F21F95700A3FF04 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -47,6 +48,7 @@
 		A4C8A7312F1F5AEA007C103D = {
 			isa = PBXGroup;
 			children = (
+				A4CF3BBC2F21F95700A3FF04 /* Local.xcconfig */,
 				A4C8A73C2F1F5AEA007C103D /* Sources */,
 				A4C8A73B2F1F5AEA007C103D /* Products */,
 			);
@@ -143,6 +145,7 @@
 /* Begin XCBuildConfiguration section */
 		A4C8A7432F1F5AEC007C103D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A4CF3BBC2F21F95700A3FF04 /* Local.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -176,7 +179,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = WPEJJ9FF9Y;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -207,6 +209,7 @@
 		};
 		A4C8A7442F1F5AEC007C103D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A4CF3BBC2F21F95700A3FF04 /* Local.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -240,7 +243,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = WPEJJ9FF9Y;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -270,7 +272,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WPEJJ9FF9Y;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -305,7 +306,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WPEJJ9FF9Y;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;

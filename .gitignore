@@ -25,3 +25,6 @@ Package.resolved
 
 # VS Code
 .vscode/
+
+# Local build configuration (contains developer team ID)
+Local.xcconfig

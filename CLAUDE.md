@@ -122,18 +122,20 @@ Utility scripts in `Scripts/`:
 | Script | Usage | Description |
 |--------|-------|-------------|
 | `build.sh` | `./Scripts/build.sh [command]` | **Primary build script** - always use this instead of xcodebuild directly |
+| `setup-local-config.sh` | `./Scripts/setup-local-config.sh [TEAM_ID]` | Configure code signing with your Apple Developer Team ID |
 | `debug.sh` | (called by build.sh) | Launch app in lldb with auto-run |
 | `test-socket.sh` | `./Scripts/test-socket.sh [event]` | Send test events (permission, mcp, idle, stop) |
 | `reset-for-testing.sh` | `./Scripts/reset-for-testing.sh` | Reset app state for fresh testing |
 | `generate-menu-icon.swift` | `swift Scripts/generate-menu-icon.swift` | Generate menu bar icon assets |
 
 **build.sh commands:**
-- `./Scripts/build.sh` - Build only (default)
+- `./Scripts/build.sh` - Build only (debug config)
+- `./Scripts/build.sh release` - Build with release config
 - `./Scripts/build.sh run` - Build and launch app
 - `./Scripts/build.sh debug` - Build and launch with lldb
 - `./Scripts/build.sh clean` - Remove build directory
 
-The build script automatically detects if code signing is available and adjusts accordingly.
+The build script automatically creates an empty `Local.xcconfig` if missing, allowing builds without code signing. Run `./Scripts/setup-local-config.sh TEAM_ID` to enable code signing with your Apple Developer Team ID.
 
 ### Terminal Support
 

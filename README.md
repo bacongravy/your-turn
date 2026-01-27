@@ -119,8 +119,11 @@ Claude Code Hook → Shell Script → Unix Socket → Your Turn → macOS Notifi
 git clone https://github.com/bacongravy/your-turn.git
 cd your-turn
 
-# Build
+# Build (debug)
 ./Scripts/build.sh
+
+# Build (release)
+./Scripts/build.sh release
 
 # Build and run
 ./Scripts/build.sh run
@@ -128,6 +131,16 @@ cd your-turn
 # Build and debug with lldb
 ./Scripts/build.sh debug
 ```
+
+### Code Signing (Optional)
+
+The build script works without code signing configured. To enable code signing with your Apple Developer Team ID:
+
+```bash
+./Scripts/setup-local-config.sh YOUR_TEAM_ID
+```
+
+This creates a gitignored `Local.xcconfig` file with your team ID.
 
 ### Testing
 

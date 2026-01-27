@@ -6,6 +6,7 @@
 #   ./Scripts/build.sh              # Build only (default)
 #   ./Scripts/build.sh run          # Build and launch app
 #   ./Scripts/build.sh debug        # Build and launch with lldb
+#   ./Scripts/build.sh release      # Build Release configuration
 #   ./Scripts/build.sh clean        # Remove build directory
 #   ./Scripts/build.sh help         # Show usage
 #
@@ -31,6 +32,7 @@ usage() {
     echo "  (none)    Build only (default)"
     echo "  run       Build and launch app"
     echo "  debug     Build and launch with lldb"
+    echo "  release   Build Release configuration"
     echo "  clean     Remove build directory"
     echo "  help      Show this help message"
     echo ""
@@ -38,10 +40,16 @@ usage() {
     echo "  $0                # Build the app"
     echo "  $0 run            # Build and launch"
     echo "  $0 debug          # Build and attach debugger"
+    echo "  $0 release        # Build for release"
     echo "  $0 clean          # Clean build artifacts"
 }
 
 build() {
+    # Create empty Local.xcconfig if it doesn't exist (allows building without code signing)
+    if [[ ! -f "Local.xcconfig" ]]; then
+        echo "// Local.xcconfig - run Scripts/setup-local-config.sh to configure code signing" > Local.xcconfig
+    fi
+
     # Detect limited environment (no keychain access for signing)
     local signing_args=()
     if security find-identity -v -p codesigning 2>/dev/null | grep -q "0 valid identities found"; then
@@ -93,6 +101,12 @@ case "$COMMAND" in
         build
         kill_app
         "$(dirname "$0")/debug.sh" "$APP_PATH"
+        ;;
+    release)
+        CONFIG="Release"
+        APP_PATH="$BUILD_DIR/Build/Products/Release/Your Turn.app"
+        build
+        echo -e "${GREEN}Release build complete:${NC} $APP_PATH"
         ;;
     clean)
         rm -rf "$BUILD_DIR"
