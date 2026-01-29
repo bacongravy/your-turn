@@ -278,7 +278,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Your Turn needs to control iTerm2 to focus terminal sessions when you click notifications.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Your Turn needs to control your terminal app to focus the right session when you click notifications.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -314,7 +314,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Your Turn needs to control iTerm2 to focus terminal sessions when you click notifications.";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Your Turn needs to control your terminal app to focus the right session when you click notifications.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
