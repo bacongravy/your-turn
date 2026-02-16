@@ -12,7 +12,7 @@ import UserNotifications
 import os.log
 
 /// Service that observes socket events and posts macOS notifications.
-/// Handles event filtering, smart suppression, and session-based notification replacement.
+/// Handles event filtering, smart suppression, and terminal-based notification replacement.
 @MainActor
 class NotificationService: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
@@ -135,8 +135,12 @@ class NotificationService: ObservableObject {
             "tty": event.tty ?? ""
         ]
 
-        // Use session-based identifier for notification replacement
-        let identifier = "session-\(event.sessionId)"
+        // Use terminal-based identifier for notification replacement.
+        // Prefer terminal session ID (iTerm), fall back to tty, then Claude session ID.
+        let terminalKey = event.termSessionId.flatMap { $0.isEmpty ? nil : $0 }
+            ?? event.tty.flatMap { $0.isEmpty ? nil : $0 }
+            ?? event.sessionId
+        let identifier = "terminal-\(terminalKey)"
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
 
         do {
