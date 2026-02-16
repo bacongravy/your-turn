@@ -25,12 +25,13 @@ When working with Claude Code, you often need to step away while it thinks, writ
 - **Task Complete** — Claude finished the work
 - **Input Needed** — Claude is asking a question or needs permission
 
-Click the notification and Your Turn brings your terminal directly to the session that needs you—no hunting through tabs or windows.
+Click the notification—or press a keyboard shortcut—and Your Turn brings your terminal directly to the session that needs you. No hunting through tabs or windows.
 
 ## Features
 
 - **Smart Notifications** — Get notified only when action is needed, not for every Claude message
 - **One-Click Focus** — Click a notification to jump directly to the right terminal session
+- **Keyboard Shortcut** — Press a configurable shortcut to focus the latest notification's session without reaching for the mouse
 - **Multi-Terminal Support** — Works with iTerm2, Terminal.app, and Warp
 - **Customizable Sounds** — Choose from 18 classic Mac sounds with adjustable repeat count
 - **Lightweight** — Lives in your menu bar, uses minimal resources
@@ -74,7 +75,9 @@ Once set up, Your Turn runs silently in your menu bar. When Claude Code needs at
 
 1. You'll hear a notification sound (configurable)
 2. A macOS notification appears with context about what happened
-3. Click the notification to jump directly to that terminal session
+3. Click the notification to jump directly to that terminal session — or press the keyboard shortcut
+
+With multiple pending notifications, each shortcut press focuses the most recent one and works through the stack.
 
 ### Menu Bar
 
@@ -89,21 +92,21 @@ Access settings from the menu bar to configure:
 
 - **Notifications** — Sound selection and repeat count
 - **Events** — Choose which events trigger notifications
-- **General** — Launch at login preference
+- **General** — Launch at login, keyboard shortcut configuration
 - **Health** — View integration status
 
 ## How It Works
 
 ```
 Claude Code Hook → Shell Script → Unix Socket → Your Turn → macOS Notification
-                                                    ↓
-                                            Click → AppleScript → Terminal
+                                                    ↓                  ↓
+                                         Click/Shortcut → AppleScript → Terminal
 ```
 
 1. Claude Code emits lifecycle events via its hooks system
 2. A shell script forwards these events to Your Turn via Unix socket
 3. Your Turn posts a macOS notification with relevant context
-4. Clicking the notification runs AppleScript to focus the correct terminal session
+4. Clicking the notification (or pressing the keyboard shortcut) runs AppleScript to focus the correct terminal session
 
 ## Terminal Support
 
@@ -182,7 +185,7 @@ Output: `./build/Build/Products/Release/Your-Turn.zip`
 Sources/
 ├── App/                    # App lifecycle & socket server
 ├── Hooks/                  # Claude Code hook installation
-├── Features/               # Notifications & health monitoring
+├── Features/               # Notifications, global hotkey & health monitoring
 ├── Terminals/              # Terminal integrations (iTerm2, Terminal.app, Warp)
 ├── Models/                 # Data models
 ├── Views/                  # SwiftUI views (Settings, Setup Wizard)

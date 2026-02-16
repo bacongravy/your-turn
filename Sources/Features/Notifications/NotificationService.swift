@@ -142,6 +142,15 @@ class NotificationService: ObservableObject {
         do {
             try await UNUserNotificationCenter.current().add(request)
             logger.info("Posted notification: \(content.body, privacy: .public)")
+
+            // Track in notification stack for global hotkey support
+            NotificationStack.shared.push(
+                sessionId: event.sessionId,
+                termProgram: event.termProgram,
+                termSessionId: event.termSessionId,
+                tty: event.tty,
+                notificationIdentifier: identifier
+            )
         } catch {
             logger.error("Failed to post notification: \(error.localizedDescription, privacy: .public)")
         }

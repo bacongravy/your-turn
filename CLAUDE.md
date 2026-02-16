@@ -9,13 +9,14 @@ When Claude Code stops working (needs input, permission, done, or error), the ap
 2. Posts a macOS notification with context (event type, project name)
 3. Plays a sound (configurable, with repeat count)
 4. Clicking the notification focuses the correct terminal session
+5. Optional keyboard shortcut focuses the latest notification's terminal session
 
 ## Architecture
 
 ```
 Claude Code Hook → Shell Script → Unix Socket → Your Turn App → macOS Notification
-                                                      ↓
-                                              Click → AppleScript → iTerm2/Terminal
+                                                      ↓                  ↓
+                                           Click/Shortcut → AppleScript → iTerm2/Terminal
 ```
 
 ### Source Structure
@@ -32,6 +33,10 @@ Sources/
 │   ├── Notifications/
 │   │   ├── NotificationService.swift   # Event → notification logic
 │   │   └── SoundPlayer.swift           # App-controlled sound playback
+│   ├── Hotkey/
+│   │   ├── HotkeyManager.swift         # Carbon keyboard shortcut registration
+│   │   ├── HotkeyConfiguration.swift   # Key code + modifiers data model
+│   │   └── NotificationStack.swift     # LIFO stack of pending notifications
 │   └── HealthCheck/
 │       ├── HealthCheckService.swift    # Integration health monitoring
 │       └── HealthStatus.swift          # Health state model
@@ -55,7 +60,7 @@ Sources/
 ├── Views/                      # UI layer
 │   ├── Settings/
 │   │   ├── SettingsView.swift          # Main settings window (tabs)
-│   │   ├── GeneralSection.swift        # Launch at login settings
+│   │   ├── GeneralSection.swift        # Launch at login, keyboard shortcut settings
 │   │   ├── NotificationSection.swift   # Sound preferences
 │   │   ├── EventsSection.swift         # Per-event toggles
 │   │   └── HealthStatusSection.swift   # Health display
@@ -95,6 +100,11 @@ Sources/
 | `notify.soundRepeatCount` | Int | 1 | Times to play sound (1-5) |
 | `notify.taskComplete` | Bool | true | Notify on task complete (Stop) |
 | `notify.inputNeeded` | Bool | true | Notify when input needed (permission_prompt, elicitation_dialog) |
+| `hotkey.enabled` | Bool | false | Enable/disable keyboard shortcut |
+| `hotkey.keyCode` | Int | (unset) | Virtual key code (UInt16 as Int) |
+| `hotkey.modifiers` | Int | (unset) | NSEvent.ModifierFlags rawValue as Int |
+
+**Naming convention:** Code uses "hotkey" (Carbon API term) — class names, UserDefaults keys, notification names. User-facing text (UI labels, log messages, docs) uses "keyboard shortcut".
 
 ## Development
 
@@ -149,7 +159,7 @@ The build script automatically creates an empty `Local.xcconfig` if missing, all
 
 ## Constraints
 
-- **macOS only** - Uses AppKit, UserNotifications, AppleScript
+- **macOS only** - Uses AppKit, UserNotifications, AppleScript, Carbon (keyboard shortcut)
 - **Not App Store** - Requires Unix socket (sandbox incompatible)
 - **Swift/SwiftUI** - Modern Swift with SwiftUI for settings UI
 - **No third-party deps** - Native frameworks only

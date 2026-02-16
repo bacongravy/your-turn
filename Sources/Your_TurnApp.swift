@@ -11,6 +11,7 @@ import UserNotifications
 extension Notification.Name {
     static let openSettings = Notification.Name("openSettings")
     static let openSetup = Notification.Name("openSetup")
+    static let hotkeyPressed = Notification.Name("hotkeyPressed")
 }
 
 /// Menu shown before setup is complete

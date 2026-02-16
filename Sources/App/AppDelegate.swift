@@ -26,9 +26,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             "notify.sound": "Sosumi.aiff",
             "notify.soundRepeatCount": 1,
             "notify.taskComplete": true,
-            "notify.inputNeeded": true
+            "notify.inputNeeded": true,
             // idle_prompt appears broken in Claude Code (GitHub issue #8320 closed as "not planned")
             // "notify.idle": false
+            "hotkey.enabled": false
         ])
 
         // Set notification delegate early, before any notifications are posted
@@ -45,6 +46,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             self,
             selector: #selector(openSettingsWindow),
             name: .openSettings,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleHotkeyPressed),
+            name: .hotkeyPressed,
             object: nil
         )
 
@@ -64,6 +71,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
                 openSettingsWindow()
             }
         }
+
+        // Register global hotkey if configured
+        HotkeyManager.shared.registerFromDefaults()
     }
 
     // MARK: - Window Management
@@ -137,6 +147,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        HotkeyManager.shared.unregister()
+
         // Clear all notifications when app quits
         let center = UNUserNotificationCenter.current()
         center.removeAllDeliveredNotifications()
@@ -168,10 +180,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        let identifier = response.notification.request.identifier
         let userInfo = response.notification.request.content.userInfo
         let termProgram = userInfo["termProgram"] as? String
         let termSessionId = userInfo["termSessionId"] as? String
         let tty = userInfo["tty"] as? String
+
+        // Remove from notification stack (user clicked it directly)
+        Task { @MainActor in
+            NotificationStack.shared.remove(identifier: identifier)
+        }
 
         // Route to appropriate controller via registry
         if let controller = TerminalRegistry.shared.controller(for: termProgram) {
@@ -182,5 +200,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         // Silent no-op for unknown terminals (no controller found)
 
         completionHandler()
+    }
+
+    // MARK: - Hotkey Handler
+
+    @objc private func handleHotkeyPressed() {
+        Task { @MainActor in
+            // Prune entries for notifications that were dismissed/expired
+            await NotificationStack.shared.pruneToDelivered()
+
+            // Pop the most recent entry
+            guard let entry = NotificationStack.shared.popLatest() else {
+                return  // No pending notifications — silent no-op
+            }
+
+            // Focus the terminal session (same code path as notification click)
+            if let controller = TerminalRegistry.shared.controller(for: entry.termProgram) {
+                controller.activate(termSessionId: entry.termSessionId, tty: entry.tty)
+            }
+
+            // Dismiss the notification from Notification Center
+            UNUserNotificationCenter.current().removeDeliveredNotifications(
+                withIdentifiers: [entry.notificationIdentifier]
+            )
+        }
     }
 }
