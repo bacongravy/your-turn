@@ -162,7 +162,7 @@ class NotificationService: ObservableObject {
         case "Notification":
             switch event.notificationType {
             case "permission_prompt":
-                return "Claude Code is asking for permission"
+                return "Claude Code has a question for you"
             case "elicitation_dialog":
                 return "Claude Code needs input for a tool"
             case "idle_prompt":
