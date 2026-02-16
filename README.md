@@ -95,19 +95,6 @@ Access settings from the menu bar to configure:
 - **General** — Launch at login, keyboard shortcut configuration
 - **Health** — View integration status
 
-## How It Works
-
-```
-Claude Code Hook → Shell Script → Unix Socket → Your Turn → macOS Notification
-                                                    ↓                  ↓
-                                         Click/Shortcut → AppleScript → Terminal
-```
-
-1. Claude Code emits lifecycle events via its hooks system
-2. A shell script forwards these events to Your Turn via Unix socket
-3. Your Turn posts a macOS notification with relevant context
-4. Clicking the notification (or pressing the keyboard shortcut) runs AppleScript to focus the correct terminal session
-
 ## Terminal Support
 
 | Terminal | Focus Support | Notes |
