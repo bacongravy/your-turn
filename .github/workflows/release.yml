@@ -16,6 +16,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Create empty Local.xcconfig
+        run: touch Local.xcconfig
+
       - uses: macreleaser/macreleaser@v1
         with:
           p12-base64: ${{ secrets.P12_BASE64 }}
