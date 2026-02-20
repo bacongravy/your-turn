@@ -1,0 +1,51 @@
+project:
+  name: "Your Turn"
+  scheme: "Your Turn"
+
+build:
+  configuration: Release
+
+sign:
+  identity: "Developer ID Application: David Kramer (WPEJJ9FF9Y)"
+
+notarize:
+  apple_id: env(APPLE_ID)
+  team_id: env(APPLE_TEAM_ID)
+  password: env(APPLE_APP_SPECIFIC_PASSWORD)
+
+archive:
+  formats:
+    - zip
+
+changelog:
+  sort: desc
+  filters:
+    exclude:
+      - "^Merge pull request"
+      - "^chore:"
+  groups:
+    - title: Features
+      regexp: "^feat:"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^fix:"
+      order: 1
+    - title: Other Changes
+      order: 2
+
+release:
+  github:
+    owner: bacongravy
+    repo: your-turn
+    draft: false
+
+homebrew:
+  tap:
+    owner: bacongravy
+    name: homebrew-tap
+    token: env(HOMEBREW_TAP_TOKEN)
+  cask:
+    name: your-turn
+    desc: "Menu bar app that notifies you when Claude Code needs attention"
+    homepage: https://github.com/bacongravy/your-turn
+    license: MIT
