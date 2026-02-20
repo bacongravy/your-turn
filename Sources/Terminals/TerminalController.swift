@@ -9,6 +9,7 @@ import Foundation
 
 /// Protocol for terminal controllers that can activate their terminal.
 /// Implementations handle terminal-specific activation logic (AppleScript, NSWorkspace, etc.).
+@MainActor
 protocol TerminalActivating {
     /// Activate the terminal, optionally focusing a specific session.
     /// - Parameters:

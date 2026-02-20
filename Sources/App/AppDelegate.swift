@@ -175,6 +175,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
     /// Called when user interacts with a notification (click or action).
     /// Routes to appropriate terminal controller via TerminalRegistry.
+    @MainActor
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
@@ -187,15 +188,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         let tty = userInfo["tty"] as? String
 
         // Remove from notification stack (user clicked it directly)
-        Task { @MainActor in
-            NotificationStack.shared.remove(identifier: identifier)
-        }
+        NotificationStack.shared.remove(identifier: identifier)
 
         // Route to appropriate controller via registry
         if let controller = TerminalRegistry.shared.controller(for: termProgram) {
-            Task { @MainActor in
-                controller.activate(termSessionId: termSessionId, tty: tty)
-            }
+            controller.activate(termSessionId: termSessionId, tty: tty)
         }
         // Silent no-op for unknown terminals (no controller found)
 
